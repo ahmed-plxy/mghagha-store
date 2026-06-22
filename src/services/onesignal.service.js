@@ -3,7 +3,7 @@
  *
  * Backend service for sending push notifications via OneSignal REST API.
  * Targets ALL subscribed users — this now includes real Android native users
- * registered via the onesignal-capacitor SDK, as well as any web push subscribers.
+ * registered via the @onesignal/capacitor-plugin SDK, as well as any web push subscribers.
  *
  * OneSignal automatically routes delivery per device type:
  *   - Android app users → FCM (Firebase Cloud Messaging) native push
