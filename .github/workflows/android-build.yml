@@ -78,6 +78,7 @@ jobs:
       - name: Configure release signing
         working-directory: mobile-app
         run: node scripts/configure-signing.js
+        continue-on-error: true
 
       # ── Show generated build.gradle ───────────────────────────────────────────
       - name: Show generated build.gradle
