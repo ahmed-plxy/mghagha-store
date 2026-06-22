@@ -36,6 +36,9 @@ jobs:
       # ── Android SDK ─────────────────────────────────────────────────────────
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+      # ── Update npm ──────────────────────────────────────────────────────────
+      - name: Update npm to stable version
+        run: npm install -g npm@10 
 
       # ── Install npm dependencies ─────────────────────────────────────────────
       - name: Install npm dependencies
