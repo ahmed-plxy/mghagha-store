@@ -1,0 +1,289 @@
+name: Android Build
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Triggers: every push to main, every version tag (v*), or manual dispatch.
+# ─────────────────────────────────────────────────────────────────────────────
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Sign APK + AAB
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+
+      # ══════════════════════════════════════════════════════════════════════
+      # PHASE 1 — Toolchain setup
+      # Sets up Java, Android SDK with the exact components Capacitor 7 needs,
+      # and Node. Order matters: Android SDK must be set up before Node so that
+      # ANDROID_HOME is exported before npm scripts that may call sdkmanager.
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Java 21 is required by Android Gradle Plugin 8.x (Capacitor 7 default).
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # Installs the Android SDK command-line tools and sets ANDROID_HOME.
+      - name: Set up Android SDK base
+        uses: android-actions/setup-android@v3
+
+      # Capacitor 7 targets compileSdk 35 / targetSdk 35 by default.
+      # setup-android installs the toolchain but NOT the API level platform.
+      # Without this step Gradle fails immediately with:
+      #   "Failed to find target with hash string 'android-35'"
+      - name: Install required Android SDK components
+        run: |
+          sdkmanager \
+            "platforms;android-35" \
+            "build-tools;35.0.0" \
+            "platform-tools" 2>&1 | grep -v "^[[:space:]]*$" | tail -20
+          echo "ANDROID_HOME = $ANDROID_HOME"
+          echo "SDK platforms installed:"
+          ls "$ANDROID_HOME/platforms/" 2>/dev/null || echo "(none yet)"
+
+      # Node must come AFTER Android SDK so ANDROID_HOME is already exported.
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mobile-app/package-lock.json
+
+      # ══════════════════════════════════════════════════════════════════════
+      # PHASE 2 — npm & Capacitor
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: Install npm dependencies
+        working-directory: mobile-app
+        run: npm ci
+
+      # Patch the server URL from the repo default to the live deployment URL.
+      # This value is baked into capacitor.config.json and loaded by the WebView.
+      - name: Set app server URL
+        working-directory: mobile-app
+        run: |
+          node -e "
+            const fs = require('fs');
+            const cfg = JSON.parse(fs.readFileSync('capacitor.config.json','utf8'));
+            if (!process.env.APP_URL) { console.error('ERROR: APP_URL secret is not set'); process.exit(1); }
+            cfg.server.url = process.env.APP_URL;
+            fs.writeFileSync('capacitor.config.json', JSON.stringify(cfg, null, 2));
+            console.log('capacitor.config.json → server.url =', process.env.APP_URL);
+          "
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+
+      # Add the android platform if this is a clean checkout (android/ is gitignored).
+      - name: Add Android platform
+        working-directory: mobile-app
+        run: |
+          if [ ! -d "android" ]; then
+            echo "android/ not found — running cap add android..."
+            npx cap add android
+          else
+            echo "android/ already exists — skipping cap add"
+          fi
+
+      # Sync web assets + plugin native code into the android/ folder.
+      - name: Sync Capacitor
+        working-directory: mobile-app
+        run: npx cap sync android
+
+      # ══════════════════════════════════════════════════════════════════════
+      # PHASE 3 — Android project configuration
+      # ══════════════════════════════════════════════════════════════════════
+
+      # CRITICAL: Write local.properties with the SDK path.
+      # "cap add android" does NOT create this file in CI, and while newer
+      # versions of AGP can read ANDROID_HOME, writing the file explicitly is
+      # the only approach that is reliable across all AGP versions.
+      - name: Write local.properties
+        working-directory: mobile-app/android
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo "Wrote local.properties:"
+          cat local.properties
+
+      # Patch AndroidManifest.xml with POST_NOTIFICATIONS + RECEIVE_BOOT_COMPLETED.
+      # Must run after cap sync (which may regenerate the manifest).
+      - name: Patch AndroidManifest for push permissions
+        working-directory: mobile-app
+        run: node scripts/patch-android-manifest.js
+
+      # Copy pre-generated icon PNGs + write adaptive-icon XML.
+      - name: Inject Android app icons
+        working-directory: mobile-app
+        run: node scripts/inject-icons.js
+
+      # Decode the base64-encoded release keystore from secrets into a file.
+      # We verify the output is non-empty to catch a missing/invalid secret early,
+      # before Gradle runs and produces a confusing JKS error.
+      - name: Decode release keystore
+        working-directory: mobile-app/android
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > release-keystore.jks
+          BYTES=$(stat -c%s release-keystore.jks)
+          echo "release-keystore.jks decoded: ${BYTES} bytes"
+          if [ "$BYTES" -lt 100 ]; then
+            echo "ERROR: Keystore is too small (${BYTES} bytes). Check ANDROID_KEYSTORE_BASE64 secret."
+            exit 1
+          fi
+
+      - name: Make gradlew executable
+        working-directory: mobile-app/android
+        run: chmod +x gradlew
+
+      # ══════════════════════════════════════════════════════════════════════
+      # PHASE 4 — Gradle caching
+      # ══════════════════════════════════════════════════════════════════════
+
+      # Cache key: gradle-wrapper.properties pins the exact Gradle version,
+      # and the top-level build.gradle pins the AGP version. These are the
+      # only files that change meaningfully between builds when android/ is
+      # generated dynamically (it is gitignored).
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('mobile-app/android/gradle/wrapper/gradle-wrapper.properties', 'mobile-app/android/build.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # ══════════════════════════════════════════════════════════════════════
+      # PHASE 5 — Build
+      #
+      # Signing strategy: we use AGP's official CI signing injection via
+      # -Pandroid.injected.signing.* properties. This is documented by Google
+      # and is the standard approach for CI pipelines. It signs the release
+      # output (APK / AAB) without requiring any modification to build.gradle.
+      #
+      # This replaces the configure-signing.js approach, which parsed and
+      # rewrote build.gradle with regex — a fragile operation that can break
+      # silently if Capacitor changes its build.gradle template.
+      #
+      # Note: --stacktrace is kept for debugging; --info is intentionally
+      # omitted. --info produces hundreds of MB of output and can cause
+      # GitHub Actions log limits to be hit, resulting in spurious failures.
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: Build release APK
+        working-directory: mobile-app/android
+        run: |
+          ./gradlew assembleRelease \
+            --no-daemon \
+            --stacktrace \
+            --console=plain \
+            -Pandroid.injected.signing.store.file="${KEYSTORE_PATH}" \
+            -Pandroid.injected.signing.store.password="${KEYSTORE_PASSWORD}" \
+            -Pandroid.injected.signing.key.alias="${KEY_ALIAS}" \
+            -Pandroid.injected.signing.key.password="${KEY_PASSWORD}"
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/mobile-app/android/release-keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Build release AAB (Google Play)
+        working-directory: mobile-app/android
+        run: |
+          ./gradlew bundleRelease \
+            --no-daemon \
+            --stacktrace \
+            --console=plain \
+            -Pandroid.injected.signing.store.file="${KEYSTORE_PATH}" \
+            -Pandroid.injected.signing.store.password="${KEYSTORE_PASSWORD}" \
+            -Pandroid.injected.signing.key.alias="${KEY_ALIAS}" \
+            -Pandroid.injected.signing.key.password="${KEY_PASSWORD}"
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/mobile-app/android/release-keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      # ══════════════════════════════════════════════════════════════════════
+      # PHASE 6 — Diagnostics on failure
+      # Dumps every file that could explain a build failure.
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: Dump build files on failure
+        if: failure()
+        working-directory: mobile-app
+        run: |
+          echo ""
+          echo "════════════ android/app/build.gradle ════════════"
+          cat android/app/build.gradle || echo "(file missing)"
+
+          echo ""
+          echo "════════════ android/build.gradle ════════════"
+          cat android/build.gradle || echo "(file missing)"
+
+          echo ""
+          echo "════════════ android/gradle.properties ════════════"
+          cat android/gradle.properties || echo "(file missing)"
+
+          echo ""
+          echo "════════════ android/local.properties ════════════"
+          cat android/local.properties || echo "(file missing)"
+
+          echo ""
+          echo "════════════ android/gradle/wrapper/gradle-wrapper.properties ════════════"
+          cat android/gradle/wrapper/gradle-wrapper.properties || echo "(file missing)"
+
+          echo ""
+          echo "════════════ android/app/src/main/AndroidManifest.xml ════════════"
+          cat android/app/src/main/AndroidManifest.xml || echo "(file missing)"
+
+          echo ""
+          echo "════════════ capacitor.config.json ════════════"
+          cat capacitor.config.json || echo "(file missing)"
+
+          echo ""
+          echo "════════════ SDK platforms installed ════════════"
+          ls "$ANDROID_HOME/platforms/" 2>/dev/null || echo "(ANDROID_HOME not set or empty)"
+
+          echo ""
+          echo "════════════ Keystore file info ════════════"
+          stat android/release-keystore.jks 2>/dev/null || echo "(keystore file missing)"
+
+      # ══════════════════════════════════════════════════════════════════════
+      # PHASE 7 — Upload artifacts
+      # ══════════════════════════════════════════════════════════════════════
+
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mghagha-store-release-apk
+          path: mobile-app/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+
+      - name: Upload AAB
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mghagha-store-release-aab
+          path: mobile-app/android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      # Attaches APK + AAB to a GitHub Release when a version tag is pushed.
+      - name: Upload to GitHub Release
+        if: success() && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            mobile-app/android/app/build/outputs/apk/release/app-release.apk
+            mobile-app/android/app/build/outputs/bundle/release/app-release.aab
