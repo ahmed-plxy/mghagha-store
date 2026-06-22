@@ -86,6 +86,9 @@ jobs:
         working-directory: mobile-app
         run: node scripts/configure-signing.js
 
+      - name: Show generated build.gradle
+        run: cat mobile-app/android/app/build.gradle
+
       # ── AndroidManifest permissions ───────────────────────────────────────────
       - name: Patch AndroidManifest.xml for push permissions
         working-directory: mobile-app
