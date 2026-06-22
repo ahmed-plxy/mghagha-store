@@ -37,6 +37,7 @@ router.post('/banners/:id/toggle', adminController.toggleBanner);
 
 router.get('/popular-searches', adminController.listPopularSearches);
 router.post('/popular-searches', adminController.createPopularSearch);
+router.post('/popular-searches/:id/update', adminController.updatePopularSearch);
 router.post('/popular-searches/:id/delete', adminController.deletePopularSearch);
 router.post('/popular-searches/:id/toggle', adminController.togglePopularSearch);
 

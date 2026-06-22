@@ -1,10 +1,39 @@
-const bcrypt = require('bcryptjs');
+const bcrypt  = require('bcryptjs');
+const crypto  = require('crypto');
 const userRepo = require('../repositories/user.repo');
 const areaRepo = require('../repositories/area.repo');
 const emailVerifRepo = require('../repositories/emailVerification.repo');
 const brevoService = require('../services/brevo.service');
 const { isValidEgyptianPhone, isValidEmail, isValidPassword, isNonEmptyString, isValidFullName } = require('../utils/validators');
 const { containsBannedWord } = require('../utils/blacklist');
+
+// ─── Mobile OAuth Token Store ─────────────────────────────────────────────────
+// When Google OAuth is triggered from the Android app, Chrome opens for auth.
+// After auth, we need to return the user to the app (not stay in Chrome).
+// We do this by redirecting to a custom URL scheme (mghagha://) that Android
+// intercepts and hands back to the app.  The app then calls /auth/mobile-token
+// to exchange this one-time token for a real server session in the WebView.
+//
+// Tokens live in memory with a 5-minute TTL and are single-use.
+const _mobileTokenStore = new Map(); // token → { userId, dest, expiresAt }
+
+function _createMobileToken(userId, dest) {
+  const token = crypto.randomBytes(24).toString('hex');
+  _mobileTokenStore.set(token, { userId, dest, expiresAt: Date.now() + 5 * 60 * 1000 });
+  // Lazily evict expired entries so the map doesn't grow unbounded
+  for (const [t, v] of _mobileTokenStore) {
+    if (v.expiresAt < Date.now()) _mobileTokenStore.delete(t);
+  }
+  return token;
+}
+
+function _consumeMobileToken(token) {
+  const entry = _mobileTokenStore.get(token);
+  if (!entry) return null;
+  _mobileTokenStore.delete(token);                   // one-time use
+  if (entry.expiresAt < Date.now()) return null;     // expired
+  return { userId: entry.userId, dest: entry.dest };
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -274,14 +303,52 @@ function googleCallback(req, res) {
 
   setSessionUser(req, user);
 
-  if (needsCompleteProfile(user)) {
-    return res.redirect('/auth/complete-profile');
+  const needsProfile = needsCompleteProfile(user);
+  const dest = needsProfile          ? '/auth/complete-profile'
+    : user.role === 'admin'          ? '/admin/dashboard'
+    : user.role === 'vendor'         ? '/vendor/dashboard'
+    : '/';
+
+  // If OAuth was initiated from the Android app (state=mobile), redirect Chrome
+  // to the mghagha:// custom URL scheme.  Android intercepts this and opens the
+  // app.  The app's appUrlOpen listener then calls /auth/mobile-token to create
+  // a proper session inside the WebView.
+  if (req.query.state === 'mobile') {
+    const token = _createMobileToken(user.id, dest);
+    return res.redirect(
+      'mghagha://login?t=' + encodeURIComponent(token) +
+      '&dest=' + encodeURIComponent(dest)
+    );
   }
 
+  if (needsProfile) return res.redirect('/auth/complete-profile');
   req.session.flash = { type: 'success', text: 'دخلت بحساب جوجل بنجاح. أهلاً بيك!' };
-  if (user.role === 'admin')  return res.redirect('/admin/dashboard');
-  if (user.role === 'vendor') return res.redirect('/vendor/dashboard');
-  return res.redirect('/');
+  return res.redirect(dest);
+}
+
+// ─── Mobile Token Exchange ─────────────────────────────────────────────────────
+// Called by the Android app after Chrome returns it via the mghagha:// scheme.
+// Validates the one-time token, creates a session for the WebView, and returns
+// JSON so the app knows where to navigate.
+function mobileTokenLogin(req, res) {
+  const token = req.query.t;
+  if (!token) {
+    return res.status(400).json({ ok: false, error: 'missing token' });
+  }
+
+  const entry = _consumeMobileToken(token);
+  if (!entry) {
+    return res.status(401).json({ ok: false, error: 'token expired or already used' });
+  }
+
+  const user = userRepo.findById(entry.userId);
+  if (!user || user.status === 'suspended') {
+    return res.status(403).json({ ok: false, error: 'user not found or suspended' });
+  }
+
+  setSessionUser(req, user);
+  req.session.flash = { type: 'success', text: 'دخلت بحساب جوجل بنجاح. أهلاً بيك!' };
+  return res.json({ ok: true, redirect: entry.dest });
 }
 
 // ─── Complete Profile (area + optional phone) ─────────────────────────────────
@@ -348,7 +415,7 @@ module.exports = {
   showRegister, register,
   showEmailRegister, emailRegister,
   showVerifyEmail, verifyEmail, resendVerificationEmail,
-  googleCallback,
+  googleCallback, mobileTokenLogin,
   showCompleteProfile, completeProfile,
   logout,
 };

@@ -186,4 +186,13 @@ function checkMatch() {
 function toggleBtn() { document.getElementById('submitBtn').disabled=!document.getElementById('agreeTerms').checked; }
 </script>
 
+<script>
+(function () {
+  if (window.Capacitor) {
+    document.querySelectorAll('a[href="/auth/google"]').forEach(function (a) {
+      a.href = '/auth/google?mobile=1';
+    });
+  }
+})();
+</script>
 <%- include('../partials/footer') %>

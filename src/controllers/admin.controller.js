@@ -301,6 +301,18 @@ function togglePopularSearch(req, res) {
   res.redirect('/admin/popular-searches');
 }
 
+function updatePopularSearch(req, res) {
+  const id = Number(req.params.id);
+  const term = (req.body.term || '').trim();
+  if (!term) {
+    req.session.flash = { type: 'error', text: 'كلمة البحث لا يمكن أن تكون فارغة.' };
+    return res.redirect('/admin/popular-searches');
+  }
+  popularSearchRepo.update(id, { term, sortOrder: Number(req.body.sortOrder) || 0 });
+  req.session.flash = { type: 'success', text: 'تم تعديل الكلمة بنجاح.' };
+  res.redirect('/admin/popular-searches');
+}
+
 // ─── Flagged Chats ─────────────────────────────────────────────
 function listFlaggedChats(req, res) {
   const conversations = conversationRepo.findFlagged();
@@ -382,7 +394,7 @@ module.exports = {
   listStores, suspendStore, activateStore, listStoreProducts, toggleStoreProduct, deleteStoreProduct,
   listUsers, suspendUser, activateUser,
   listBanners, uploadBanner, deleteBanner, toggleBanner,
-  listPopularSearches, createPopularSearch, deletePopularSearch, togglePopularSearch,
+  listPopularSearches, createPopularSearch, updatePopularSearch, deletePopularSearch, togglePopularSearch,
   listFlaggedChats, viewFlaggedChat, unflagChat,
   listReports, dismissReport, disableReportedProduct, deleteReportedProduct
 };

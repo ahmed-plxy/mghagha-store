@@ -27,4 +27,10 @@ function toggleActive(id) {
   db.prepare('UPDATE popular_searches SET is_active = CASE WHEN is_active = 1 THEN 0 ELSE 1 END WHERE id = ?').run(id);
 }
 
-module.exports = { findAll, findActive, findById, create, remove, toggleActive };
+function update(id, { term, sortOrder }) {
+  db.prepare('UPDATE popular_searches SET term = ?, sort_order = ? WHERE id = ?')
+    .run(term, sortOrder || 0, id);
+  return findById(id);
+}
+
+module.exports = { findAll, findActive, findById, create, update, remove, toggleActive };

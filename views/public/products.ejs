@@ -74,20 +74,17 @@
     <% } %>
   </div>
 
-  <% if (!hasFilters && localSections.length > 0) { %>
+  <% if (!hasFilters && (localSections.length > 0 || (popularSearches && popularSearches.length > 0))) { %>
+    <% if (popularSearches && popularSearches.length > 0) { %>
     <div class="products-popular-searches container">
       <h2 class="section-title">عمليات البحث الشائعة</h2>
       <div class="popular-searches-list" style="margin-top:14px;">
-        <a href="/products?search=سيارة+مستعملة" class="popular-search-tag">🚗 سيارة مستعملة في مغاغة</a>
-        <a href="/products?search=ثلاجة" class="popular-search-tag">❄️ ثلاجة مستعملة</a>
-        <a href="/products?search=موبايل" class="popular-search-tag">📱 موبايل مستعمل</a>
-        <a href="/products?search=أرانب" class="popular-search-tag">🐇 أرانب</a>
-        <a href="/products?search=شقة" class="popular-search-tag">🏠 شقة للإيجار</a>
-        <a href="/products?search=طماطم" class="popular-search-tag">🍅 محصول طماطم</a>
-        <a href="/products?search=دراجة" class="popular-search-tag">🚲 دراجة مستعملة</a>
-        <a href="/products?search=أثاث" class="popular-search-tag">🛋️ أثاث منزلي</a>
+        <% popularSearches.forEach(function(s) { %>
+          <a href="/products?search=<%= encodeURIComponent(s.term) %>" class="popular-search-tag"><%= s.term %></a>
+        <% }) %>
       </div>
     </div>
+    <% } %>
 
     <% localSections.forEach(function(section) { %>
     <div class="offers-section">

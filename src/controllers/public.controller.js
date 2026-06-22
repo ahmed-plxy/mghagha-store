@@ -10,92 +10,121 @@ const bannerRepo = require('../repositories/banner.repo');
 const popularSearchRepo = require('../repositories/popularSearch.repo');
 
 const CATEGORY_ICONS = {
+  // ── Cars ──────────────────────────────────────────────────────────────────
   'العربيات': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M4 17H2a1 1 0 01-1-1v-3l2.3-5.8A2 2 0 015.2 6h13.6a2 2 0 011.9 1.2L23 13v3a1 1 0 01-1 1h-2"/>
-    <circle cx="7" cy="17" r="2.5"/>
-    <circle cx="17" cy="17" r="2.5"/>
-    <path d="M9.5 17h5"/>
-    <path d="M1 13h22"/>
+    <path d="M6 11L8.5 5.5h7l2.5 5.5"/>
+    <rect x="1.5" y="11" width="21" height="5" rx="1.5"/>
+    <circle cx="6.5" cy="17.5" r="1.8"/>
+    <circle cx="17.5" cy="17.5" r="1.8"/>
+    <path d="M8.3 17.5h7.4"/>
+    <path d="M1.5 13.5H4M20 13.5h2.5"/>
+    <line x1="6" y1="11" x2="18" y2="11"/>
+    <path d="M10 7V11M14.5 7V11"/>
   </svg>`,
+  // ── Phones ────────────────────────────────────────────────────────────────
   'الموبايلات': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="5" y="2" width="14" height="20" rx="3"/>
-    <circle cx="12" cy="18" r="1" fill="currentColor" stroke="none"/>
-    <line x1="9" y1="6" x2="15" y2="6"/>
-    <line x1="9" y1="9.5" x2="15" y2="9.5" opacity=".4"/>
-    <line x1="9" y1="12" x2="13" y2="12" opacity=".4"/>
+    <rect x="5.5" y="1.5" width="13" height="21" rx="2.5"/>
+    <path d="M10 5.5h4"/>
+    <circle cx="12" cy="19.5" r="1.2" fill="currentColor" stroke="none"/>
+    <line x1="9" y1="9" x2="15" y2="9" stroke-width="1.1" opacity=".45"/>
+    <line x1="9" y1="11.5" x2="15" y2="11.5" stroke-width="1.1" opacity=".45"/>
+    <line x1="9" y1="14" x2="13" y2="14" stroke-width="1.1" opacity=".45"/>
   </svg>`,
+  // ── Home Appliances (washing machine) ─────────────────────────────────────
   'أجهزة منزلية': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="5" y="2" width="14" height="20" rx="2"/>
-    <line x1="5" y1="10" x2="19" y2="10"/>
-    <line x1="9" y1="6" x2="9" y2="8"/>
-    <line x1="9" y1="14" x2="9" y2="18"/>
-    <circle cx="15" cy="6" r="1" fill="currentColor" stroke="none"/>
-    <circle cx="15" cy="16" r="1" fill="currentColor" stroke="none"/>
+    <rect x="2" y="2" width="20" height="20" rx="2"/>
+    <line x1="2" y1="8.5" x2="22" y2="8.5"/>
+    <circle cx="12" cy="15.5" r="4"/>
+    <circle cx="12" cy="15.5" r="2"/>
+    <circle cx="5.5" cy="5.5" r="1" fill="currentColor" stroke="none"/>
+    <circle cx="8.5" cy="5.5" r="1" fill="currentColor" stroke="none"/>
+    <line x1="15" y1="5.5" x2="18.5" y2="5.5"/>
   </svg>`,
+  // ── Furniture (sofa) ──────────────────────────────────────────────────────
   'أثاث منزلي': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M3 11V8a1 1 0 011-1h16a1 1 0 011 1v3"/>
-    <rect x="1" y="11" width="22" height="7" rx="2"/>
-    <line x1="4" y1="18" x2="4" y2="21"/>
-    <line x1="20" y1="18" x2="20" y2="21"/>
-    <path d="M3 14.5h4M17 14.5h4"/>
-    <path d="M7 11v7M17 11v7"/>
+    <path d="M20 11.5V8.5a2 2 0 00-2-2H6a2 2 0 00-2 2v3"/>
+    <rect x="2" y="11.5" width="20" height="6" rx="2"/>
+    <path d="M6 17.5v3M18 17.5v3"/>
+    <line x1="4.5" y1="20.5" x2="19.5" y2="20.5"/>
   </svg>`,
+  // ── Kitchen (fork & knife) ────────────────────────────────────────────────
   'أدوات المطبخ': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M4 10h16l-1.6 9a2 2 0 01-2 1.7H7.6A2 2 0 015.6 19L4 10z"/>
-    <path d="M3 10h18"/>
-    <path d="M8 10V7a1 1 0 011-1h6a1 1 0 011 1v3"/>
-    <path d="M20 7c1.8.5 2.5 1.5 2.5 2.5"/>
-    <path d="M4 7C2.2 7.5 1.5 8.5 1.5 9.5"/>
+    <line x1="8" y1="2" x2="8" y2="22"/>
+    <path d="M6 2v6a2 2 0 004 0V2"/>
+    <line x1="17" y1="2" x2="17" y2="22"/>
+    <path d="M14 2c0 4.5 6 4.5 6 9a6 6 0 01-6 5.5"/>
   </svg>`,
+  // ── Computer (laptop) ─────────────────────────────────────────────────────
   'الحاسوب': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="2" y="4" width="20" height="13" rx="2"/>
-    <path d="M2 20h20"/>
-    <path d="M9.5 20L11 17h2l1.5 3"/>
-    <rect x="5" y="7" width="14" height="7" rx="1" opacity=".25" fill="currentColor" stroke="none"/>
-    <path d="M8 11h4M8 13.5h2" opacity=".5"/>
+    <path d="M4 4h16a1 1 0 011 1v11H3V5a1 1 0 011-1z"/>
+    <path d="M1 16h22l-1.5 3H2.5L1 16z"/>
+    <rect x="5" y="6.5" width="10" height="7" rx=".5" opacity=".12" fill="currentColor" stroke="none"/>
+    <line x1="7" y1="10" x2="12" y2="10" opacity=".5" stroke-width="1.2"/>
+    <line x1="7" y1="12.5" x2="10" y2="12.5" opacity=".5" stroke-width="1.2"/>
+    <rect x="17" y="8" width="2" height="2.5" rx=".4" opacity=".3" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="18" r=".8" fill="currentColor" stroke="none"/>
   </svg>`,
+  // ── Livestock (cow head) ──────────────────────────────────────────────────
   'مواشي وحيوانات': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M8 5c-1-3 1-5 3-4M16 5c1-3-1-5-3-4"/>
-    <ellipse cx="12" cy="11.5" rx="6" ry="5"/>
-    <path d="M6 11c-2.5.5-4 2-3.5 4.5M18 11c2.5.5 4 2 3.5 4.5"/>
-    <circle cx="10" cy="11" r=".7" fill="currentColor" stroke="none"/>
-    <circle cx="14" cy="11" r=".7" fill="currentColor" stroke="none"/>
-    <path d="M10 15c.6.8 3.4.8 4 0"/>
-    <path d="M10 8.5c.6-.5 3.4-.5 4 0"/>
+    <ellipse cx="12" cy="14" rx="7" ry="6"/>
+    <path d="M5 10C3 9 1.5 7.5 2 6c.5-1.5 2.5-1.5 3-.5"/>
+    <path d="M19 10c2-.5 3.5-2 3-3.5-.5-1.5-2.5-1.5-3-.5"/>
+    <path d="M7.5 8C7.5 5.5 9.5 3.5 12 3.5S16.5 5.5 16.5 8"/>
+    <circle cx="9.5" cy="13" r=".8" fill="currentColor" stroke="none"/>
+    <circle cx="14.5" cy="13" r=".8" fill="currentColor" stroke="none"/>
+    <path d="M10 16.5c.5.8 3.5.8 4 0"/>
+    <ellipse cx="10.5" cy="17.5" rx="1.2" ry=".6" opacity=".35" fill="currentColor" stroke="none"/>
+    <ellipse cx="13.5" cy="17.5" rx="1.2" ry=".6" opacity=".35" fill="currentColor" stroke="none"/>
   </svg>`,
+  // ── Agriculture (wheat) ───────────────────────────────────────────────────
   'المحاصيل الزراعية': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
     <line x1="12" y1="22" x2="12" y2="6"/>
-    <path d="M12 17c-2-1.5-4-4-3-7 2 1 4 4 3 7z"/>
-    <path d="M12 17c2-1.5 4-4 3-7-2 1-4 4-3 7z"/>
-    <path d="M12 13c-1.5-1-2.5-3-2-5 1.5 1 2.5 3 2 5z"/>
-    <path d="M12 13c1.5-1 2.5-3 2-5-1.5 1-2.5 3-2 5z"/>
-    <path d="M12 9c-.8-.8-1-2-.5-3.5 1 .8 1.2 2 .5 3.5z"/>
-    <path d="M12 9c.8-.8 1-2 .5-3.5-1 .8-1.2 2-.5 3.5z"/>
+    <path d="M12 18c-2.5-1-4.5-4-4-7 2 .5 4 3.5 4 7z"/>
+    <path d="M12 18c2.5-1 4.5-4 4-7-2 .5-4 3.5-4 7z"/>
+    <path d="M12 13.5c-2-.8-3.5-3-3-5.5 1.5.8 3 3 3 5.5z"/>
+    <path d="M12 13.5c2-.8 3.5-3 3-5.5-1.5.8-3 3-3 5.5z"/>
+    <path d="M12 9c-.8-1-1-2.5-.5-4.5.8 1 1.2 2.5.5 4.5z"/>
+    <path d="M12 9c.8-1 1-2.5.5-4.5-.8 1-1.2 2.5-.5 4.5z"/>
+    <line x1="9.5" y1="22" x2="14.5" y2="22"/>
   </svg>`,
+  // ── Real Estate (house) ───────────────────────────────────────────────────
   'العقارات والأراضي': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
     <path d="M3 10.5L12 3l9 7.5V21H3V10.5z"/>
-    <path d="M9 21V14h6v7"/>
-    <rect x="10" y="6.5" width="4" height="3.5" rx=".5" opacity=".4" fill="currentColor" stroke="none"/>
-    <path d="M3 21h18"/>
+    <rect x="9" y="13.5" width="6" height="7.5"/>
+    <rect x="4.5" y="11.5" width="3.5" height="3.5" rx=".5"/>
+    <rect x="16" y="11.5" width="3.5" height="3.5" rx=".5"/>
+    <line x1="3" y1="21" x2="21" y2="21"/>
   </svg>`,
+  // ── Professions (briefcase) ───────────────────────────────────────────────
   'قسم المهن': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.8-3.8a6 6 0 01-7.94 7.94L6.6 20.4a2.12 2.12 0 01-3-3l6.94-6.94A6 6 0 0114.7 6.3z"/>
+    <rect x="2" y="7.5" width="20" height="13.5" rx="2"/>
+    <path d="M8 7.5V5.5a2 2 0 012-2h4a2 2 0 012 2v2"/>
+    <line x1="2" y1="14" x2="22" y2="14"/>
+    <circle cx="12" cy="14" r="2" fill="currentColor" stroke="none" opacity=".5"/>
   </svg>`,
+  // ── Clothes (shirt — unchanged, already clear) ────────────────────────────
   'ملابس وأزياء': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
     <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10a2 2 0 002 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/>
+    <path d="M12 2v4" opacity=".3"/>
   </svg>`,
+  // ── Perfumes & Accessories (perfume bottle) ───────────────────────────────
   'عطور وإكسسوارات': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M6 9l6-7 6 7-6 13-6-13z"/>
-    <path d="M6 9h12"/>
-    <path d="M3 9l3-7M21 9l-3-7"/>
-    <path d="M3 9L12 22M21 9L12 22"/>
+    <rect x="7" y="9" width="10" height="12" rx="2.5"/>
+    <path d="M9.5 9V7a2.5 2.5 0 015 0v2"/>
+    <line x1="12" y1="4.5" x2="12" y2="7"/>
+    <path d="M10.5 4.5h3" stroke-linecap="round"/>
+    <circle cx="12" cy="4" r=".9" fill="currentColor" stroke="none"/>
+    <path d="M10 13.5c.5 1.5 3.5 1.5 4 0"/>
+    <line x1="12" y1="16" x2="12" y2="17.5" opacity=".4"/>
   </svg>`,
+  // ── Water Vehicles (boat) ─────────────────────────────────────────────────
   'مركبات مائية': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
     <path d="M2 20c1.5-1.5 4-1.5 5.5 0s4 1.5 5.5 0 4-1.5 5.5 0"/>
-    <path d="M4 16l2-8h12l2 8H4z"/>
-    <path d="M12 4v4"/>
-    <path d="M12 4L7 10h5"/>
+    <path d="M5 15.5L7 8h10l2 7.5H5z"/>
+    <line x1="12" y1="3" x2="12" y2="8"/>
+    <path d="M9 5l3-2 3 2"/>
   </svg>`,
+  // ── Sports & Fitness (barbell) ────────────────────────────────────────────
   'رياضة ولياقة': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
     <rect x="6" y="5" width="2.5" height="14" rx="1.2"/>
     <rect x="15.5" y="5" width="2.5" height="14" rx="1.2"/>
@@ -218,6 +247,9 @@ function listProducts(req, res) {
     }).filter(s => s.products.length > 0);
   }
 
+  let popularSearches = [];
+  try { popularSearches = popularSearchRepo.findActive(); } catch (e) {}
+
   res.render('public/products', {
     title: 'المنتجات',
     products,
@@ -226,6 +258,7 @@ function listProducts(req, res) {
     subCategories,
     areas,
     localSections,
+    popularSearches,
     hasFilters: !!hasFilters,
     filters: {
       search: search || '',

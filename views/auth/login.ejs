@@ -102,4 +102,13 @@ function togglePass(id, btn) {
 }
 </script>
 
+<script>
+(function () {
+  if (window.Capacitor) {
+    document.querySelectorAll('a[href="/auth/google"]').forEach(function (a) {
+      a.href = '/auth/google?mobile=1';
+    });
+  }
+})();
+</script>
 <%- include('../partials/footer') %>

@@ -30,11 +30,24 @@ router.post('/complete-profile', authController.completeProfile);
 
 // ─── Google OAuth ─────────────────────────────────────────────────────────────
 if (env.googleClientId && env.googleClientSecret) {
-  router.get('/google', requireGuest, passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+  // When the request comes from the Android app (?mobile=1), we encode 'mobile'
+  // in the OAuth state so the callback knows to redirect back to the app instead
+  // of staying in Chrome.
+  router.get('/google', requireGuest, (req, res, next) => {
+    const opts = { scope: ['profile', 'email'] };
+    if (req.query.mobile === '1') opts.state = 'mobile';
+    passport.authenticate('google', opts)(req, res, next);
+  });
+
   router.get('/google/callback',
     passport.authenticate('google', { failureRedirect: '/auth/login?error=google' }),
     authController.googleCallback
   );
+
+  // Token exchange: the Android app calls this after Chrome redirects it back via
+  // the mghagha:// custom scheme.  Exchanges a one-time token for a real session.
+  router.get('/mobile-token', authController.mobileTokenLogin);
 }
 
 module.exports = router;

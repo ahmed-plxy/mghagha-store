@@ -23,7 +23,8 @@
     },
     "StatusBar": {
       "style": "dark",
-      "backgroundColor": "#1e7a4c"
+      "backgroundColor": "#1e7a4c",
+      "overlaysWebView": false
     },
     "OneSignal": {
       "appId": "157460ff-c4f1-4fca-af04-a0740f39a14f"

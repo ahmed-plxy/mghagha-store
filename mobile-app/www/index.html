@@ -44,6 +44,17 @@
     // ── OneSignal + App bootstrap ──────────────────────────────────────────
     document.addEventListener('deviceready', function () {
 
+      // ── Status Bar ───────────────────────────────────────────────────────
+      // Ensure the WebView starts BELOW the status bar so app content is
+      // never hidden behind the clock/battery row.
+      // overlaysWebView:false is also set in capacitor.config.json; this call
+      // enforces it at runtime in case the config value isn't applied yet.
+      if (window.StatusBar) {
+        window.StatusBar.overlaysWebView(false);
+        window.StatusBar.backgroundColorByHexString('#1e7a4c');
+        window.StatusBar.styleLightContent();
+      }
+
       // ── OneSignal Native Capacitor Init ──────────────────────────────────
       // @onesignal/capacitor-plugin exposes window.OneSignal after cap sync + build
       if (window.OneSignal) {

@@ -48,6 +48,28 @@ ensurePermission('android.permission.POST_NOTIFICATIONS');
 // Required for OneSignal to reschedule notifications after device reboot
 ensurePermission('android.permission.RECEIVE_BOOT_COMPLETED');
 
+// ── Custom URL scheme intent filter ───────────────────────────────────────────
+// Registers mghagha:// as a URL scheme this app handles.
+// When Google OAuth completes in Chrome, the server redirects to
+// mghagha://login?t=TOKEN — Android intercepts this and switches back to
+// the Mghagha app so the user is not left in Chrome after signing in.
+const intentFilter = `
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.DEFAULT"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data android:scheme="mghagha"/>
+        </intent-filter>`;
+
+if (!xml.includes('android:scheme="mghagha"')) {
+  // Insert before the closing </activity> tag
+  xml = xml.replace('</activity>', intentFilter + '\n    </activity>');
+  console.log('  ✔ Added mghagha:// intent filter for Google OAuth return');
+  changed = true;
+} else {
+  console.log('  ✓ mghagha:// intent filter already present');
+}
+
 if (changed) {
   fs.writeFileSync(manifestPath, xml);
   console.log('✔ AndroidManifest.xml updated');
