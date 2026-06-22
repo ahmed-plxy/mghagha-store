@@ -21,11 +21,11 @@ jobs:
         uses: actions/checkout@v4
 
       # ── Java 17 for Gradle ───────────────────────────────────────────────────
-      - name: Set up Java 17
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       # ── Android SDK ──────────────────────────────────────────────────────────
       - name: Set up Android SDK
