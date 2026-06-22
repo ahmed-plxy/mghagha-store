@@ -15,7 +15,7 @@
     "@capacitor/core": "^6.1.2",
     "@capacitor/splash-screen": "^6.0.2",
     "@capacitor/status-bar": "^6.0.1",
-    "@onesignal/onesignal-capacitor-plugin": "^5.2.0"
+    "@onesignal/capacitor-plugin": "^1.1.0"
   },
 
   "devDependencies": {
