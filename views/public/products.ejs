@@ -1,0 +1,313 @@
+<%- include('../partials/header', { title: 'المنتجات' }) %>
+
+<div class="products-page">
+
+  <div class="landing-search-bar">
+    <div class="landing-search-inner">
+      <svg class="search-icon" id="productSearchIconBtn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="button" tabindex="0" aria-label="بحث" style="cursor:pointer;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <div class="search-input-wrapper">
+        <form action="/products" method="GET" id="productSearchForm">
+          <div class="animated-placeholder-wrap" id="productPlaceholderWrap">
+            <span class="animated-placeholder" id="productPlaceholderText">ابحث في منتجات مغاغة...</span>
+          </div>
+          <input type="text" name="search" id="productSearch" class="landing-search-input" value="<%= filters.search %>" autocomplete="off">
+          <% if (filters.categoryId) { %><input type="hidden" name="categoryId" value="<%= filters.categoryId %>"><% } %>
+          <% if (filters.subCategoryId) { %><input type="hidden" name="subCategoryId" value="<%= filters.subCategoryId %>"><% } %>
+          <% if (filters.areaId) { %><input type="hidden" name="areaId" value="<%= filters.areaId %>"><% } %>
+        </form>
+      </div>
+      <button class="filter-fab-btn" id="openFilterBtn" aria-label="فلترة">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="20" height="20"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        <% if (filters.areaId || filters.minPrice || filters.maxPrice) { %><span class="filter-dot"></span><% } %>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="category-icon-grid products-category-grid">
+      <a href="/products" class="category-icon-item <%= !filters.categoryId ? 'active' : '' %>">
+        <div class="category-icon-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+        </div>
+        <span class="category-icon-label">الكل</span>
+      </a>
+      <% mainCategories.forEach(function(cat) { %>
+        <a href="/products?categoryId=<%= cat.id %><%= filters.search ? '&search='+encodeURIComponent(filters.search) : '' %>" class="category-icon-item <%= Number(filters.categoryId) === cat.id ? 'active' : '' %>">
+          <div class="category-icon-circle">
+            <%- cat.icon %>
+          </div>
+          <span class="category-icon-label"><%= cat.name %></span>
+        </a>
+      <% }) %>
+    </div>
+
+    <% if (subCategories && subCategories.length > 0) { %>
+    <div class="subcategory-chips-bar">
+      <a href="/products?categoryId=<%= filters.categoryId %><%= filters.search ? '&search='+encodeURIComponent(filters.search) : '' %>" class="subcategory-chip <%= !filters.subCategoryId ? 'active' : '' %>">الكل</a>
+      <% subCategories.forEach(function(sub) { %>
+        <a href="/products?categoryId=<%= filters.categoryId %>&subCategoryId=<%= sub.id %><%= filters.search ? '&search='+encodeURIComponent(filters.search) : '' %>" class="subcategory-chip <%= Number(filters.subCategoryId) === sub.id ? 'active' : '' %>"><%= sub.name %></a>
+      <% }) %>
+    </div>
+    <% } %>
+
+    <% if (filters.categoryId || filters.subCategoryId || filters.areaId || filters.search || filters.minPrice || filters.maxPrice) { %>
+    <div class="active-filters-bar">
+      <% if (filters.search) { %>
+        <span class="active-filter-tag">🔍 <%= filters.search %> <a href="/products?categoryId=<%= filters.categoryId %>&subCategoryId=<%= filters.subCategoryId %>&areaId=<%= filters.areaId %>">✕</a></span>
+      <% } %>
+      <% if (filters.subCategoryId) { %>
+        <% const selSub = categories.find(c => c.id === Number(filters.subCategoryId)); %>
+        <% if (selSub) { %><span class="active-filter-tag"><%= selSub.name %> <a href="/products?categoryId=<%= filters.categoryId %><%= filters.search ? '&search='+encodeURIComponent(filters.search) : '' %>">✕</a></span><% } %>
+      <% } else if (filters.categoryId && !filters.subCategoryId) { %>
+        <% const selCat = categories.find(c => c.id === Number(filters.categoryId)); %>
+        <% if (selCat) { %><span class="active-filter-tag"><%= selCat.name %></span><% } %>
+      <% } %>
+      <% if (filters.areaId) { %>
+        <% const selArea = areas.find(a => a.id === Number(filters.areaId)); %>
+        <% if (selArea) { %><span class="active-filter-tag">📍 <%= selArea.name %> <a href="/products?categoryId=<%= filters.categoryId %>&subCategoryId=<%= filters.subCategoryId %>&search=<%= filters.search %>">✕</a></span><% } %>
+      <% } %>
+      <% if (filters.minPrice || filters.maxPrice) { %>
+        <span class="active-filter-tag">💰 <%= filters.minPrice || '0' %> — <%= filters.maxPrice || '∞' %> ج.م <a href="/products?categoryId=<%= filters.categoryId %>&subCategoryId=<%= filters.subCategoryId %>&search=<%= filters.search %>&areaId=<%= filters.areaId %>">✕</a></span>
+      <% } %>
+      <a href="/products" class="active-filter-clear">مسح الكل</a>
+    </div>
+    <% } %>
+  </div>
+
+  <% if (!hasFilters && localSections.length > 0) { %>
+    <div class="products-popular-searches container">
+      <h2 class="section-title">عمليات البحث الشائعة</h2>
+      <div class="popular-searches-list" style="margin-top:14px;">
+        <a href="/products?search=سيارة+مستعملة" class="popular-search-tag">🚗 سيارة مستعملة في مغاغة</a>
+        <a href="/products?search=ثلاجة" class="popular-search-tag">❄️ ثلاجة مستعملة</a>
+        <a href="/products?search=موبايل" class="popular-search-tag">📱 موبايل مستعمل</a>
+        <a href="/products?search=أرانب" class="popular-search-tag">🐇 أرانب</a>
+        <a href="/products?search=شقة" class="popular-search-tag">🏠 شقة للإيجار</a>
+        <a href="/products?search=طماطم" class="popular-search-tag">🍅 محصول طماطم</a>
+        <a href="/products?search=دراجة" class="popular-search-tag">🚲 دراجة مستعملة</a>
+        <a href="/products?search=أثاث" class="popular-search-tag">🛋️ أثاث منزلي</a>
+      </div>
+    </div>
+
+    <% localSections.forEach(function(section) { %>
+    <div class="offers-section">
+      <div class="offers-section-header container">
+        <h2 class="section-title"><%= section.emoji %> <%= section.title %></h2>
+        <% if (section.categoryId) { %>
+          <a href="/products?categoryId=<%= section.categoryId %>" class="view-all-link">عرض الكل ←</a>
+        <% } %>
+      </div>
+      <div class="offers-carousel-wrapper">
+        <div class="offers-carousel">
+          <% section.products.forEach(function(product) { %>
+            <a href="/stores/<%= product.store_slug %>/products/<%= product.slug %>" class="offer-card">
+              <div class="offer-card-image-wrap">
+                <% if (product.image_url) { %>
+                  <img src="/uploads/<%= product.image_url %>" alt="<%= product.name %>" class="offer-card-image">
+                <% } else { %>
+                  <div class="offer-card-image offer-card-no-image">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="32" height="32"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  </div>
+                <% } %>
+              </div>
+              <div class="offer-card-body">
+                <p class="offer-card-name"><%= product.name %></p>
+                <p class="offer-card-store"><%= product.store_name %></p>
+                <p class="offer-card-price"><%= product.price.toFixed(0) %> <span class="price-unit">ج.م</span></p>
+              </div>
+            </a>
+          <% }) %>
+          <% if (section.categoryId) { %>
+          <a href="/products?categoryId=<%= section.categoryId %>" class="offer-card offer-card-viewall">
+            <span>عرض المزيد من<br><%= section.title %></span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><polyline points="15 18 9 12 15 6"/></svg>
+          </a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    <% }) %>
+
+    <div class="container" style="margin-bottom:28px;">
+      <div class="products-all-header">
+        <h2 class="section-title">🛍️ جميع المنتجات</h2>
+      </div>
+    </div>
+  <% } %>
+
+  <div class="container">
+    <% if (products.length === 0) { %>
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <p>لا توجد منتجات مطابقة لبحثك.</p>
+        <a href="/products" class="btn btn-primary btn-small">عرض كل المنتجات</a>
+      </div>
+    <% } else { %>
+      <% if (hasFilters) { %><p class="results-count"><%= products.length %> منتج</p><% } %>
+      <div class="grid">
+        <% products.forEach(function(product) { %>
+          <a href="/stores/<%= product.store_slug %>/products/<%= product.slug %>" class="card-link">
+            <% if (product.image_url) { %>
+              <img src="/uploads/<%= product.image_url %>" alt="<%= product.name %>" class="card-image">
+            <% } else { %>
+              <div class="card-image-placeholder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="32" height="32"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </div>
+            <% } %>
+            <div class="card-body">
+              <h3 class="card-title"><%= product.name %></h3>
+              <p class="card-meta"><%= product.store_name %></p>
+              <p class="card-price"><%= product.price.toFixed(0) %> ج.م</p>
+            </div>
+          </a>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<div class="filter-overlay" id="filterOverlay"></div>
+<div class="filter-sheet" id="filterSheet">
+  <div class="filter-sheet-handle"></div>
+  <div class="filter-sheet-header">
+    <h3>فلترة النتائج</h3>
+    <button class="filter-sheet-close" id="closeFilterBtn" aria-label="إغلاق">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="22" height="22"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="filter-sheet-body">
+    <form action="/products" method="GET" id="filterForm">
+      <% if (filters.search) { %><input type="hidden" name="search" value="<%= filters.search %>"><% } %>
+      <% if (filters.categoryId) { %><input type="hidden" name="categoryId" value="<%= filters.categoryId %>"><% } %>
+      <% if (filters.subCategoryId) { %><input type="hidden" name="subCategoryId" value="<%= filters.subCategoryId %>"><% } %>
+
+      <div class="filter-section">
+        <label class="filter-label">📍 المنطقة</label>
+        <div class="filter-select-wrap">
+          <select name="areaId" class="filter-select">
+            <option value="">كل المناطق</option>
+            <% areas.forEach(function(area) { %>
+              <option value="<%= area.id %>" <%= Number(filters.areaId) === area.id ? 'selected' : '' %>><%= area.name %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <label class="filter-label">💰 نطاق السعر</label>
+        <div class="filter-price-row">
+          <div class="filter-price-field">
+            <label class="filter-price-label">من</label>
+            <input type="number" name="minPrice" min="0" value="<%= filters.minPrice %>" placeholder="0" class="filter-price-input">
+          </div>
+          <div class="filter-price-sep">—</div>
+          <div class="filter-price-field">
+            <label class="filter-price-label">إلى</label>
+            <input type="number" name="maxPrice" min="0" value="<%= filters.maxPrice %>" placeholder="أي سعر" class="filter-price-input">
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-sheet-actions">
+        <a href="/products<%= filters.categoryId ? '?categoryId='+filters.categoryId : '' %>" class="btn-filter-reset">مسح الفلترة</a>
+        <button type="submit" class="btn btn-primary">عرض النتائج</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function() {
+  var input = document.getElementById('productSearch');
+  var wrap = document.getElementById('productPlaceholderWrap');
+  var span = document.getElementById('productPlaceholderText');
+  var placeholders = [
+    'ابحث في منتجات مغاغة...',
+    'تبحث عن سيارة مستعملة؟',
+    'تبحث عن ثلاجة مستعملة؟',
+    'تبحث عن موبايل؟',
+    'تبحث عن أرانب؟',
+    'تبحث عن أثاث منزلي؟',
+    'تبحث عن منتجات زراعية؟',
+    'تبحث عن شقة للإيجار؟'
+  ];
+  var pi = 0;
+
+  function updateVisibility() {
+    wrap.style.display = input.value ? 'none' : 'flex';
+  }
+
+  updateVisibility();
+
+  if (!input.value) {
+    setInterval(function() {
+      span.classList.add('ph-exit');
+      setTimeout(function() {
+        pi = (pi + 1) % placeholders.length;
+        span.textContent = placeholders[pi];
+        span.classList.remove('ph-exit');
+        span.classList.add('ph-enter');
+        setTimeout(function() { span.classList.remove('ph-enter'); }, 400);
+      }, 300);
+    }, 2800);
+  }
+
+  input.addEventListener('input', updateVisibility);
+  input.addEventListener('focus', updateVisibility);
+  input.addEventListener('blur', updateVisibility);
+
+  // Search only runs when the user presses Enter or clicks the search icon —
+  // no automatic live search request is sent on every keystroke.
+  var searchForm = document.getElementById('productSearchForm');
+  var searchIconBtn = document.getElementById('productSearchIconBtn');
+
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (searchForm) searchForm.submit();
+    }
+  });
+
+  if (searchIconBtn) {
+    searchIconBtn.addEventListener('click', function() {
+      if (searchForm) searchForm.submit();
+    });
+    searchIconBtn.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (searchForm) searchForm.submit();
+      }
+    });
+  }
+
+  var openBtn = document.getElementById('openFilterBtn');
+  var closeBtn = document.getElementById('closeFilterBtn');
+  var overlay = document.getElementById('filterOverlay');
+  var sheet = document.getElementById('filterSheet');
+
+  function openSheet() {
+    overlay.classList.add('active');
+    sheet.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSheet() {
+    overlay.classList.remove('active');
+    sheet.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  if (openBtn) openBtn.addEventListener('click', openSheet);
+  if (closeBtn) closeBtn.addEventListener('click', closeSheet);
+  if (overlay) overlay.addEventListener('click', closeSheet);
+
+  var startY = 0;
+  if (sheet) {
+    sheet.addEventListener('touchstart', function(e) { startY = e.touches[0].clientY; }, { passive: true });
+    sheet.addEventListener('touchend', function(e) {
+      if (e.changedTouches[0].clientY - startY > 80) closeSheet();
+    }, { passive: true });
+  }
+})();
+</script>
+
+<%- include('../partials/footer') %>

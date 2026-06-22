@@ -1,0 +1,48 @@
+<%- include('../partials/header', { title: t('nav.cart') }) %>
+<div class="container">
+  <h1>السلة</h1>
+
+  <% if (isEmpty) { %>
+    <p>السلة فاضية دلوقتي. <a href="/products">تصفح المنتجات</a></p>
+  <% } else { %>
+    <% groups.forEach(function(group) { %>
+      <div class="cart-store-group">
+        <div class="cart-store-title"><%= group.storeName %></div>
+        <% group.items.forEach(function(item) { %>
+          <div class="cart-item-row">
+            <% if (item.image_url) { %>
+              <img src="/uploads/<%= item.image_url %>" alt="<%= item.product_name %>" class="cart-item-image">
+            <% } else { %>
+              <div class="cart-item-image"></div>
+            <% } %>
+            <div class="cart-item-info">
+              <strong><%= item.product_name %></strong>
+              <p class="card-meta"><%= item.current_price.toFixed(2) %> ج.م × <%= item.quantity %> = <%= item.lineTotal.toFixed(2) %> ج.م</p>
+            </div>
+            <form action="/customer/cart/items/<%= item.cart_item_id %>/update" method="POST" class="cart-item-qty-form">
+              <input type="number" name="quantity" value="<%= item.quantity %>" min="1" max="<%= item.available_quantity %>">
+              <button type="submit" class="btn btn-small btn-secondary">حدّث</button>
+            </form>
+            <form action="/customer/cart/items/<%= item.cart_item_id %>/remove" method="POST" class="inline-form">
+              <button type="submit" class="btn btn-small btn-danger">امسح</button>
+            </form>
+          </div>
+        <% }) %>
+        <div class="cart-summary-row">
+          <span>إجمالي المحل</span>
+          <span><%= group.subtotal.toFixed(2) %> ج.م</span>
+        </div>
+      </div>
+    <% }) %>
+
+    <div class="cart-grand-total">
+      <span>المجموع الكلي</span>
+      <span><%= grandTotal.toFixed(2) %> ج.م</span>
+    </div>
+
+    <p style="margin-top:20px;">
+      <a href="/customer/checkout" class="btn btn-primary">كمّل الطلب</a>
+    </p>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

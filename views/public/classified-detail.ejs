@@ -1,0 +1,108 @@
+<%- include('../partials/header', { title: listing.name }) %>
+
+<div class="container" style="padding-bottom:80px;max-width:800px;">
+
+  <div style="margin:16px 0 12px;">
+    <a href="/classifieds" style="color:var(--color-muted);text-decoration:none;font-size:.88rem;">
+      ← العودة للإعلانات
+    </a>
+  </div>
+
+  <% if (listing.status === 'sold') { %>
+  <div class="flash flash-error" style="margin-bottom:16px;">هذه الحاجة اتباعت بالفعل</div>
+  <% } %>
+
+  <div class="product-detail-grid">
+
+    <div>
+      <% if (images.length > 0) { %>
+        <img src="/uploads/<%= images[0].image_url %>" alt="<%= listing.name %>" class="product-gallery-main" id="mainImg">
+        <% if (images.length > 1) { %>
+        <div class="product-gallery-thumbs">
+          <% images.forEach(function(img, i) { %>
+          <img src="/uploads/<%= img.image_url %>"
+               class="thumb <%= i === 0 ? '' : '' %>"
+               style="cursor:pointer;opacity:<%= i===0?1:.6 %>;border:<%= i===0?'2px solid var(--color-primary)':'2px solid transparent' %>;"
+               onclick="switchImg(this, '/uploads/<%= img.image_url %>')"
+               alt="">
+          <% }) %>
+        </div>
+        <% } %>
+      <% } else { %>
+        <div class="card-image-placeholder" style="height:320px;border-radius:12px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+      <% } %>
+    </div>
+
+    <div>
+      <h1 style="font-size:1.4rem;font-weight:800;margin:0 0 10px;"><%= listing.name %></h1>
+      <p style="font-size:1.6rem;font-weight:900;color:var(--color-primary-dark);margin:0 0 12px;">
+        <%= listing.price > 0 ? listing.price.toFixed(0)+' جنيه' : 'السعر قابل للتفاوض' %>
+      </p>
+
+      <% var condLabels = { new: '✨ جديدة', like_new: '🌟 كالجديدة', used: '👍 مستعملة', for_parts: '🔧 للقطع غيار' }; %>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+        <% if (condLabels[listing.condition]) { %>
+        <span class="badge badge-success"><%= condLabels[listing.condition] %></span>
+        <% } %>
+        <% if (listing.category_name) { %>
+        <span class="badge badge-muted"><%= listing.category_name %></span>
+        <% } %>
+      </div>
+
+      <div style="background:var(--color-bg-alt);border-radius:10px;padding:14px;margin-bottom:16px;">
+        <p style="margin:0 0 6px;font-size:.85rem;color:var(--color-muted);font-weight:600;">البائع</p>
+        <p style="margin:0;font-weight:700;"><%= listing.seller_name %></p>
+      </div>
+
+      <% if (listing.description && listing.description.trim()) { %>
+      <div style="margin-bottom:20px;">
+        <p style="font-weight:700;margin-bottom:8px;">الوصف</p>
+        <p style="color:var(--color-muted);line-height:1.7;white-space:pre-wrap;"><%= listing.description %></p>
+      </div>
+      <% } %>
+
+      <% if (currentUser && listing.status === 'active') { %>
+        <% if (currentUser.id !== listing.user_id) { %>
+        <a href="/customer/messages" class="btn btn-primary" style="width:100%;display:block;text-align:center;padding:14px;font-size:1rem;font-weight:700;margin-bottom:10px;">
+          💬 تواصل مع البائع
+        </a>
+        <% } else { %>
+        <div style="background:var(--color-primary-tint);border:2px solid var(--color-primary);border-radius:14px;padding:16px;margin-bottom:10px;">
+          <p style="margin:0 0 10px;font-weight:700;color:var(--color-primary-dark);font-size:0.9rem;">🏷️ هذا إعلانك — هل بعته؟</p>
+          <form action="/customer/my-listings/<%= listing.id %>/sold" method="POST">
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;background:#16a34a;border-color:#16a34a;font-size:1rem;padding:13px;"
+              onclick="return confirm('هل تأكد إنك بعت الحاجة دي؟ هيتم إخفاء الإعلان من السوق.')">
+              ✅ تم البيع — أخفي الإعلان
+            </button>
+          </form>
+          <a href="/customer/my-listings" class="btn btn-secondary" style="width:100%;display:block;text-align:center;padding:10px;margin-top:8px;font-size:0.88rem;">
+            إدارة كل إعلاناتي
+          </a>
+        </div>
+        <% } %>
+      <% } else if (!currentUser) { %>
+      <a href="/auth/login" class="btn btn-primary" style="width:100%;display:block;text-align:center;padding:14px;font-size:1rem;font-weight:700;">
+        سجل دخول للتواصل مع البائع
+      </a>
+      <% } %>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+function switchImg(el, src) {
+  document.getElementById('mainImg').src = src;
+  document.querySelectorAll('.product-gallery-thumbs .thumb').forEach(function(t) {
+    t.style.opacity = '.6';
+    t.style.border = '2px solid transparent';
+  });
+  el.style.opacity = '1';
+  el.style.border = '2px solid var(--color-primary)';
+}
+</script>
+
+<%- include('../partials/footer') %>

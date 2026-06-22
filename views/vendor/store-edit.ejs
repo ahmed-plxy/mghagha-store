@@ -1,0 +1,99 @@
+<%- include('../partials/header', { title: 'حسابي — ملف المتجر' }) %>
+<div class="container pf-container">
+
+  <div class="pf-header">
+    <a href="/vendor/dashboard" class="back-link">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      ارجع للوحة التحكم
+    </a>
+    <h1 class="pf-title">حسابي 🏪</h1>
+  </div>
+
+  <!-- Store profile preview card -->
+  <div class="pf-section" style="margin-bottom:16px;">
+    <div class="pf-section-title">
+      <span>👁️</span>
+      <span>بيانات المتجر</span>
+    </div>
+    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+      <% if (store.logo_image) { %>
+        <img src="/uploads/<%= store.logo_image %>" alt="شعار المتجر" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--color-primary,#2e7d32);">
+      <% } else { %>
+        <div style="width:72px;height:72px;border-radius:50%;background:#e3f3ea;display:flex;align-items:center;justify-content:center;font-size:2rem;border:3px solid #e3f3ea;">🏪</div>
+      <% } %>
+      <div>
+        <p style="margin:0 0 4px;font-weight:700;font-size:1.2rem;"><%= store.store_name %></p>
+        <p style="margin:0 0 6px;color:var(--color-muted);font-size:0.88rem;">/stores/<%= store.store_slug %></p>
+        <a href="/stores/<%= store.store_slug %>" target="_blank" class="btn btn-secondary btn-small">👁️ شوف المتجر</a>
+      </div>
+    </div>
+    <% if (store.cover_image) { %>
+      <div style="margin-top:14px;">
+        <p style="margin:0 0 6px;font-size:0.85rem;font-weight:600;color:var(--color-muted);">صورة الغلاف:</p>
+        <img src="/uploads/<%= store.cover_image %>" alt="غلاف المتجر" style="max-width:100%;max-height:160px;border-radius:10px;border:1px solid var(--color-border);object-fit:cover;display:block;">
+      </div>
+    <% } %>
+    <% if (store.description) { %>
+      <div style="margin-top:12px;padding:10px 14px;background:var(--color-bg-secondary,#f9f9f9);border-radius:8px;font-size:0.9rem;color:var(--color-text);">
+        <%= store.description %>
+      </div>
+    <% } %>
+  </div>
+
+  <form action="/vendor/store/edit" method="POST" enctype="multipart/form-data" class="pf-form">
+
+    <div class="pf-section">
+      <div class="pf-section-title">
+        <span class="pf-step">١</span>
+        <span>وصف المتجر</span>
+      </div>
+      <div class="form-group">
+        <label for="description">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          وصف المتجر (اختياري)
+        </label>
+        <textarea id="description" name="description" rows="4" class="pf-input" placeholder="اكتب وصف قصير لمتجرك ونوع البضاعة اللي بتبيعها..."><%= store.description || '' %></textarea>
+      </div>
+    </div>
+
+    <div class="pf-section">
+      <div class="pf-section-title">
+        <span class="pf-step">٢</span>
+        <span>صور المتجر</span>
+      </div>
+      <div class="pf-two-col">
+        <div class="form-group">
+          <label for="logoImage">صورة الشعار</label>
+          <div class="pf-file-wrap">
+            <label for="logoImage" class="pf-file-label">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              <%= store.logo_image ? 'غير الشعار' : 'ارفع الشعار' %>
+            </label>
+            <input type="file" id="logoImage" name="logoImage" accept="image/jpeg,image/png,image/webp" class="pf-file-input">
+            <p class="pf-file-hint">مربعة — 200×200 على الأقل</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="coverImage">صورة الغلاف</label>
+          <div class="pf-file-wrap">
+            <label for="coverImage" class="pf-file-label">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <%= store.cover_image ? 'غير الغلاف' : 'ارفع الغلاف' %>
+            </label>
+            <input type="file" id="coverImage" name="coverImage" accept="image/jpeg,image/png,image/webp" class="pf-file-input">
+            <p class="pf-file-hint">أفقية — 1200×400 مثالية</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pf-submit-row">
+      <button type="submit" class="btn btn-primary pf-submit">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        احفظ التعديلات
+      </button>
+      <a href="/vendor/dashboard" class="btn btn-secondary">إلغاء</a>
+    </div>
+  </form>
+</div>
+<%- include('../partials/footer') %>

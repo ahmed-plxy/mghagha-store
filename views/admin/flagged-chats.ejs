@@ -1,0 +1,63 @@
+<%- include('../partials/header', { title: 'محادثات مشبوهة' }) %>
+<div class="container">
+  <div class="page-header-row" style="margin-bottom:20px;">
+    <div>
+      <h1 style="margin:0 0 4px;font-size:1.4rem;">🚨 محادثات مشبوهة</h1>
+      <p style="margin:0;color:var(--color-muted);font-size:0.88rem;">محادثات تم اكتشاف كلمات مشبوهة فيها — راجعها واتخذ الإجراء المناسب</p>
+    </div>
+    <a href="/admin/dashboard" class="btn btn-secondary btn-small">← لوحة التحكم</a>
+  </div>
+
+  <% if (conversations.length === 0) { %>
+    <div class="info-card" style="text-align:center;padding:48px 20px;">
+      <p style="font-size:2.5rem;margin-bottom:8px;">✅</p>
+      <p style="font-weight:600;margin-bottom:4px;">لا توجد محادثات مشبوهة</p>
+      <p style="color:var(--color-muted);font-size:0.88rem;">كل المحادثات نظيفة. سيتم تنبيهك هنا إذا اكتشف النظام أي محتوى مشبوه.</p>
+    </div>
+  <% } else { %>
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>العميل</th>
+            <th>المتجر</th>
+            <th>سبب التبليغ</th>
+            <th>آخر رسالة</th>
+            <th style="text-align:center;">الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% conversations.forEach(function(conv) { %>
+            <tr>
+              <td>
+                <div>
+                  <strong><%= conv.customer_name %></strong>
+                  <div style="font-size:0.8rem;color:var(--color-muted);"><%= conv.customer_phone %></div>
+                </div>
+              </td>
+              <td><%= conv.store_name %></td>
+              <td>
+                <span style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:8px;padding:3px 8px;font-size:0.82rem;font-weight:600;">
+                  🚩 <%= conv.flagged_reason || 'محتوى مشبوه' %>
+                </span>
+              </td>
+              <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--color-muted);font-size:0.88rem;">
+                <%= conv.last_body || '—' %>
+              </td>
+              <td>
+                <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+                  <a href="/admin/flagged-chats/<%= conv.id %>" class="btn btn-small btn-secondary">عرض</a>
+                  <form action="/admin/flagged-chats/<%= conv.id %>/unflag" method="POST" class="inline-form"
+                    onsubmit="return confirm('هل هذه المحادثة آمنة؟ ستُزال من قائمة المشبوهة.')">
+                    <button type="submit" class="btn btn-small" style="background:var(--color-success);color:#fff;border-color:var(--color-success);">✓ آمنة</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

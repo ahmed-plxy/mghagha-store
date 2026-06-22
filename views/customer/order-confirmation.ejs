@@ -1,0 +1,33 @@
+<%- include('../partials/header', { title: 'تفاصيل الطلب' }) %>
+<div class="container">
+  <h1>تم إنشاء طلبك بنجاح</h1>
+  <p class="card-meta">رقم العملية: <%= checkoutId %></p>
+
+  <% orders.forEach(function(order) { %>
+    <div class="order-group-card">
+      <h2><%= order.store_name %></h2>
+      <p>رقم الطلب: <strong><%= order.order_number %></strong></p>
+      <p>الحالة: <span class="badge badge-success"><%= orderStatusLabel(order.order_status) %></span></p>
+      <table class="data-table">
+        <thead>
+          <tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
+        </thead>
+        <tbody>
+          <% order.items.forEach(function(item) { %>
+            <tr>
+              <td><%= item.product_name %></td>
+              <td><%= item.quantity %></td>
+              <td><%= item.unit_price.toFixed(2) %> ج.م</td>
+              <td><%= item.subtotal.toFixed(2) %> ج.م</td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <p style="text-align:left; font-weight:700; margin-top:10px;">الإجمالي: <%= order.total_amount.toFixed(2) %> ج.م</p>
+      <a href="/customer/orders/<%= order.id %>" class="btn btn-small btn-secondary">تتبع هذا الطلب</a>
+    </div>
+  <% }) %>
+
+  <a href="/customer/orders" class="btn btn-primary">عرض كل طلباتي</a>
+</div>
+<%- include('../partials/footer') %>

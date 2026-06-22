@@ -1,0 +1,260 @@
+<%- include('../partials/header', { title: 'لوحة التحكم' }) %>
+<div class="container">
+
+  <div class="page-header-row" style="margin-bottom:20px;">
+    <div>
+      <h1 style="margin:0 0 4px;font-size:1.4rem;">لوحة التحكم</h1>
+      <p style="margin:0;color:var(--color-muted);font-size:0.88rem;">🏪 <%= store.store_name %></p>
+    </div>
+    <a href="/vendor/products/new" class="btn btn-primary" style="display:flex;align-items:center;gap:6px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      إضافة منتج
+    </a>
+  </div>
+
+  <div class="stats-grid" style="gap:12px;margin-bottom:24px;">
+    <a href="/vendor/products" class="stat-card" style="text-decoration:none;flex:1;min-width:120px;">
+      <div class="stat-card-icon" style="background:#e3f3ea;">📦</div>
+      <span class="stat-number"><%= productCount %></span>
+      <span class="stat-label">كل المنتجات</span>
+    </a>
+    <a href="/vendor/products" class="stat-card" style="text-decoration:none;flex:1;min-width:120px;">
+      <div class="stat-card-icon" style="background:#e3f3ea;">✅</div>
+      <span class="stat-number"><%= activeProductCount %></span>
+      <span class="stat-label">منتجات شغالة</span>
+    </a>
+    <a href="#orders-section" class="stat-card" id="pendingOrderCard" style="text-decoration:none;flex:1;min-width:120px;position:relative;transition:border-color 0.3s,background 0.3s;">
+      <div class="stat-card-icon" style="background:#fff8e1;">⏳</div>
+      <span class="stat-number" id="pendingOrderCount"><%= pendingOrderCount || 0 %></span>
+      <span class="stat-label">محتاجة ردك</span>
+      <span id="newOrderBadge" style="display:none;position:absolute;top:-8px;right:-8px;background:var(--color-danger);color:#fff;border-radius:20px;padding:2px 10px;font-size:0.75rem;font-weight:700;animation:pulse 1s infinite;">جديد!</span>
+    </a>
+  </div>
+
+  <div id="pendingOrderBanner" style="display:<%= (pendingOrderCount || 0) > 0 ? 'flex' : 'none' %>;" class="vendor-order-action-banner" style="margin-bottom:20px;">
+    <div>
+      <p style="margin:0 0 4px;font-weight:700;font-size:1rem;">⚠️ عندك <span id="pendingBannerCount"><%= pendingOrderCount %></span> طلب محتاج ردك</p>
+      <p style="margin:0;color:var(--color-muted);font-size:0.88rem;">راجع الطلبات الجديدة واتصرف بسرعة</p>
+    </div>
+    <a href="#orders-section" class="btn btn-primary">اعرض الطلبات</a>
+  </div>
+
+  <div class="pf-section" style="margin-bottom:20px;">
+    <div class="pf-section-title">
+      <span>⚡</span>
+      <span>إجراءات سريعة</span>
+    </div>
+    <div class="admin-quick-actions">
+      <a href="/vendor/products/new" class="admin-action-card">
+        <span class="admin-action-icon">➕</span>
+        <span class="admin-action-label">ضيف منتج</span>
+      </a>
+      <a href="/vendor/products" class="admin-action-card">
+        <span class="admin-action-icon">📋</span>
+        <span class="admin-action-label">منتجاتي</span>
+      </a>
+      <a href="/vendor/messages" class="admin-action-card">
+        <span class="admin-action-icon">💬</span>
+        <span class="admin-action-label">الشات</span>
+      </a>
+      <a href="/vendor/store/edit" class="admin-action-card">
+        <span class="admin-action-icon">🏪</span>
+        <span class="admin-action-label">حسابي</span>
+      </a>
+      <a href="/stores/<%= store.store_slug %>" target="_blank" class="admin-action-card">
+        <span class="admin-action-icon">👁️</span>
+        <span class="admin-action-label">شوف محلك</span>
+      </a>
+    </div>
+  </div>
+
+  <%# ===== EMBEDDED ORDERS SECTION ===== %>
+  <div class="pf-section" id="orders-section" style="margin-bottom:20px;">
+    <div class="pf-section-title" style="justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span>📋</span>
+        <span>الطلبات الجاية</span>
+        <% if ((pendingOrderCount || 0) > 0) { %>
+          <span id="ordersActionBadge" style="background:var(--color-danger);color:#fff;border-radius:20px;padding:1px 10px;font-size:0.75rem;font-weight:700;"><%= pendingOrderCount %> جديد</span>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="tabs" style="margin-bottom:16px;overflow-x:auto;white-space:nowrap;">
+      <a href="?tab=all" class="<%= (!locals.activeTab || locals.activeTab === 'all') ? 'tab active' : 'tab' %>" onclick="filterOrders('all');return false;">الكل</a>
+      <a href="?tab=pending" class="tab" onclick="filterOrders('pending');return false;">⏳ في الانتظار</a>
+      <a href="?tab=confirmed" class="tab" onclick="filterOrders('confirmed');return false;">✅ متأكد</a>
+      <a href="?tab=preparing" class="tab" onclick="filterOrders('preparing');return false;">🔧 بيتجهز</a>
+      <a href="?tab=out_for_delivery" class="tab" onclick="filterOrders('out_for_delivery');return false;">🚚 في الطريق</a>
+      <a href="?tab=delivered" class="tab" onclick="filterOrders('delivered');return false;">📦 وصل</a>
+      <a href="?tab=cancelled" class="tab" onclick="filterOrders('cancelled');return false;">❌ اتلغى</a>
+    </div>
+
+    <% if (recentOrders.length === 0) { %>
+      <div class="empty-state" style="padding:32px 0;">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--color-muted)"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <p style="color:var(--color-muted);margin:8px 0 0;">لسه مفيش طلبات.</p>
+      </div>
+    <% } else { %>
+      <div id="ordersContainer" style="display:flex;flex-direction:column;gap:12px;">
+        <% recentOrders.forEach(function(order) { %>
+          <div class="vendor-order-card order-item" data-status="<%= order.order_status %>">
+            <div class="vendor-order-card-header">
+              <div>
+                <span class="vendor-order-number">#<%= order.order_number %></span>
+                <span class="vendor-order-amount"><%= order.total_amount.toFixed(0) %> ج.م</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="badge badge-<%= order.order_status === 'pending' ? 'warning' : order.order_status === 'cancelled' ? 'danger' : 'success' %>">
+                  <%
+                    var statusLabels = {
+                      pending: 'في الانتظار',
+                      confirmed: 'متأكد',
+                      preparing: 'بيتجهز',
+                      out_for_delivery: 'في الطريق',
+                      delivered: 'وصل',
+                      cancelled: 'اتلغى'
+                    };
+                  %><%= statusLabels[order.order_status] || order.order_status %>
+                </span>
+                <a href="/vendor/orders/<%= order.id %>" class="btn btn-small btn-secondary">التفاصيل</a>
+              </div>
+            </div>
+            <div class="vendor-order-card-meta">
+              <span style="color:var(--color-muted);font-size:0.83rem;">📅 <%= new Date(order.created_at).toLocaleDateString('ar-EG', {year:'numeric',month:'short',day:'numeric'}) %></span>
+            </div>
+            <% if (order.order_status === 'pending') { %>
+              <div class="vendor-order-quick-actions">
+                <form action="/vendor/orders/<%= order.id %>/status" method="POST" style="display:inline;">
+                  <input type="hidden" name="status" value="confirmed">
+                  <button type="submit" class="btn btn-small btn-success">✅ اقبل الطلب</button>
+                </form>
+                <form action="/vendor/orders/<%= order.id %>/status" method="POST" style="display:inline;">
+                  <input type="hidden" name="status" value="cancelled">
+                  <button type="submit" class="btn btn-small btn-danger">❌ ارفض الطلب</button>
+                </form>
+              </div>
+            <% } else if (order.order_status === 'confirmed') { %>
+              <div class="vendor-order-quick-actions">
+                <form action="/vendor/orders/<%= order.id %>/status" method="POST" style="display:inline;">
+                  <input type="hidden" name="status" value="preparing">
+                  <button type="submit" class="btn btn-small btn-primary">🔧 ابدأ التحضير</button>
+                </form>
+              </div>
+            <% } else if (order.order_status === 'preparing') { %>
+              <div class="vendor-order-quick-actions">
+                <form action="/vendor/orders/<%= order.id %>/status" method="POST" style="display:inline;">
+                  <input type="hidden" name="status" value="out_for_delivery">
+                  <button type="submit" class="btn btn-small btn-primary">🚚 بعتو للتوصيل</button>
+                </form>
+              </div>
+            <% } else if (order.order_status === 'out_for_delivery') { %>
+              <div class="vendor-order-quick-actions">
+                <form action="/vendor/orders/<%= order.id %>/status" method="POST" style="display:inline;">
+                  <input type="hidden" name="status" value="delivered">
+                  <button type="submit" class="btn btn-small btn-success">📦 أكد التوصيل</button>
+                </form>
+              </div>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+</div>
+
+<style>
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.12); opacity: 0.85; }
+}
+.order-item.hidden { display: none !important; }
+.tab { cursor: pointer; }
+</style>
+
+<script>
+(function () {
+  var lastCount = <%= pendingOrderCount || 0 %>;
+  var audioCtx = null;
+
+  function getAudioCtx() {
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+    }
+    return audioCtx;
+  }
+
+  function playBeep() {
+    var ctx = getAudioCtx();
+    if (!ctx) return;
+    function tone(freq, startTime, duration, vol) {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.value = freq;
+      gain.gain.setValueAtTime(vol, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+      osc.start(startTime); osc.stop(startTime + duration);
+    }
+    var t = ctx.currentTime;
+    tone(880, t, 0.18, 0.35); tone(1100, t+0.2, 0.18, 0.3); tone(1320, t+0.4, 0.25, 0.28);
+  }
+
+  function showNewOrderAlert(count) {
+    var card = document.getElementById('pendingOrderCard');
+    var badge = document.getElementById('newOrderBadge');
+    var banner = document.getElementById('pendingOrderBanner');
+    var bannerCount = document.getElementById('pendingBannerCount');
+    var countEl = document.getElementById('pendingOrderCount');
+    var actionBadge = document.getElementById('ordersActionBadge');
+
+    if (countEl) countEl.textContent = count;
+    if (bannerCount) bannerCount.textContent = count;
+
+    if (count > 0) {
+      if (banner) banner.style.display = 'flex';
+      if (actionBadge) { actionBadge.textContent = count + ' جديد'; actionBadge.style.display = 'inline'; }
+      if (card) { card.style.borderColor = '#ffe082'; card.style.background = '#fffef7'; }
+    } else {
+      if (banner) banner.style.display = 'none';
+      if (actionBadge) actionBadge.style.display = 'none';
+      if (card) { card.style.borderColor = ''; card.style.background = ''; }
+    }
+    if (badge) badge.style.display = count > lastCount ? 'inline-flex' : 'none';
+  }
+
+  function poll() {
+    fetch('/vendor/api/pending-count', { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var newCount = data.count || 0;
+        if (newCount > lastCount) { playBeep(); showNewOrderAlert(newCount); }
+        else { showNewOrderAlert(newCount); }
+        lastCount = newCount;
+      }).catch(function() {});
+  }
+
+  document.addEventListener('click', function initAudio() {
+    getAudioCtx(); document.removeEventListener('click', initAudio);
+  }, { once: true });
+
+  setInterval(poll, 30000);
+})();
+
+function filterOrders(status) {
+  var items = document.querySelectorAll('.order-item');
+  var tabs = document.querySelectorAll('.tabs .tab');
+  tabs.forEach(function(t) { t.classList.remove('active'); });
+  event.target.classList.add('active');
+  items.forEach(function(item) {
+    if (status === 'all' || item.dataset.status === status) {
+      item.classList.remove('hidden');
+    } else {
+      item.classList.add('hidden');
+    }
+  });
+}
+</script>
+
+<%- include('../partials/footer') %>

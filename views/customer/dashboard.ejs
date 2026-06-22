@@ -1,0 +1,179 @@
+<%- include('../partials/header', { title: 'حسابي' }) %>
+
+<div class="container account-page">
+
+  <div class="account-profile-card">
+    <div class="account-avatar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <div class="account-profile-info">
+      <h2 class="account-name"><%= currentUser.fullName %></h2>
+      <p class="account-role-badge">عميل</p>
+    </div>
+  </div>
+
+  <%# ── Edit Profile Form ── %>
+  <div class="account-info-section">
+    <h3 class="account-section-title">بياناتي الشخصية</h3>
+
+    <% if (success) { %>
+      <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:10px 14px;margin-bottom:14px;color:#15803d;font-weight:600;font-size:.9rem;">
+        <%= success %>
+      </div>
+    <% } %>
+    <% if (errors && errors.length > 0) { %>
+      <div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:10px;padding:10px 14px;margin-bottom:14px;">
+        <% errors.forEach(function(e) { %><p style="color:#dc2626;margin:0;font-size:.88rem;">⚠ <%= e %></p><% }) %>
+      </div>
+    <% } %>
+
+    <form action="/customer/profile/update" method="POST" class="account-edit-form">
+
+      <div class="account-field-group">
+        <div class="account-field">
+          <label class="account-field-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            الاسم الكامل
+          </label>
+          <input type="text" name="fullName" class="account-field-input"
+            value="<%= (fullUser && fullUser.full_name) || currentUser.fullName %>"
+            placeholder="اسمك الحقيقي" required minlength="3">
+        </div>
+
+        <div class="account-field">
+          <label class="account-field-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            البريد الإلكتروني
+          </label>
+          <input type="email" name="email" class="account-field-input"
+            value="<%= (fullUser && fullUser.email) || '' %>"
+            placeholder="example@gmail.com (اختياري)">
+        </div>
+      </div>
+
+      <%# Phone — locked, read-only %>
+      <div class="account-field account-field-locked">
+        <label class="account-field-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          رقم الهاتف
+          <span class="account-lock-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            محمي
+          </span>
+        </label>
+        <div class="account-locked-field" dir="ltr"><%= currentUser.phone %></div>
+        <span class="account-field-hint">رقم الهاتف لا يمكن تغييره لأسباب أمنية</span>
+      </div>
+
+      <button type="submit" class="account-save-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        حفظ البيانات
+      </button>
+    </form>
+  </div>
+
+  <div class="account-quick-links">
+    <h3 class="account-section-title">الطلبات والمفضلة</h3>
+    <div class="account-links-list">
+      <a href="/customer/orders" class="account-link-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span>طلباتي</span>
+        <svg class="link-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <a href="/customer/wishlist" class="account-link-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        <span>قائمة المفضلة</span>
+        <svg class="link-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <a href="/customer/cart" class="account-link-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.57l1.65-8.42H6"/></svg>
+        <span>سلة المشتريات</span>
+        <svg class="link-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <a href="/customer/messages" class="account-link-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span>رسائلي</span>
+        <% if (unreadMessageCount > 0) { %><span class="account-badge"><%= unreadMessageCount %></span><% } %>
+        <svg class="link-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="account-quick-links">
+    <h3 class="account-section-title">معلومات وتواصل</h3>
+    <div class="account-links-list">
+      <a href="/about" class="account-link-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>من نحن</span>
+        <svg class="link-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <a href="/privacy" class="account-link-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>سياسة الخصوصية</span>
+        <svg class="link-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <a href="/terms" class="account-link-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>اتفاقية البيع والشراء</span>
+        <svg class="link-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <a href="/help" class="account-link-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        <span>المساعدة والدعم</span>
+        <svg class="link-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="account-quick-links">
+    <h3 class="account-section-title">إجراءات</h3>
+    <div class="account-links-list">
+      <div class="account-link-item account-logout-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="20" height="20"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <form action="/auth/logout" method="POST" style="flex:1">
+          <button type="submit" class="account-logout-btn">تسجيل الخروج</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.account-edit-form { display: flex; flex-direction: column; gap: 14px; }
+.account-field-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 480px) { .account-field-group { grid-template-columns: 1fr; } }
+.account-field { display: flex; flex-direction: column; gap: 5px; }
+.account-field-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: .82rem; font-weight: 700; color: var(--color-muted);
+}
+.account-field-input {
+  border: 1.5px solid var(--color-border); border-radius: 10px;
+  padding: 11px 13px; font-size: .95rem; background: var(--color-bg);
+  color: var(--color-text); outline: none; transition: border-color .18s;
+  font-family: inherit;
+}
+.account-field-input:focus { border-color: var(--color-primary); }
+.account-field-locked { background: var(--color-bg-alt); border: 1.5px solid var(--color-border); border-radius: 12px; padding: 12px 14px; }
+.account-locked-field {
+  font-size: 1rem; font-weight: 700; color: var(--color-text);
+  padding: 10px 13px; background: var(--color-bg-alt); border-radius: 8px;
+  letter-spacing: .5px; user-select: none;
+}
+.account-field-hint { font-size: .75rem; color: var(--color-muted); }
+.account-lock-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: #fef3c7; color: #92400e;
+  border-radius: 20px; padding: 1px 7px; font-size: .7rem; margin-right: 4px;
+}
+.account-save-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--color-primary); color: #fff; border: none;
+  border-radius: 12px; padding: 13px; font-size: .95rem; font-weight: 700;
+  cursor: pointer; transition: background .18s; font-family: inherit;
+}
+.account-save-btn:hover { background: var(--color-primary-dark, #155e38); }
+</style>
+
+<%- include('../partials/footer') %>

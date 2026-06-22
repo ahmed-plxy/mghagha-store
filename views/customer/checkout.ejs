@@ -1,0 +1,113 @@
+<%- include('../partials/header', { title: 'كمّل الطلب' }) %>
+<div class="container">
+
+  <div class="page-header-row" style="margin-bottom:20px;">
+    <div>
+      <h1 style="margin:0 0 4px;font-size:1.4rem;">كمّل الطلب</h1>
+      <p style="margin:0;color:var(--color-muted);font-size:0.88rem;">راجع طلبك وحط بياناتك للتوصيل</p>
+    </div>
+  </div>
+
+  <% if (errors && errors.length > 0) { %>
+    <div class="auth-alert auth-alert-error" style="margin-bottom:16px;">
+      <% errors.forEach(function(err) { %><p style="margin:0;">⚠ <%= err %></p><% }) %>
+    </div>
+  <% } %>
+
+  <div class="checkout-warning-banner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="flex-shrink:0;margin-top:2px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span>⚠️ لضمان حقك وحمايتك، خليك تكمّل الشراء من خلال الموقع. الإدارة مش مسؤولة عن أي اتفاقات بره الموقع.</span>
+  </div>
+
+  <h2 style="font-size:1.05rem;font-weight:700;margin:0 0 14px;">تفاصيل الطلب</h2>
+
+  <% groups.forEach(function(group) { %>
+    <div class="cart-store-group" style="margin-bottom:14px;">
+      <div class="cart-store-title" style="display:flex;align-items:center;gap:8px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        <%= group.storeName %>
+      </div>
+      <% group.items.forEach(function(item) { %>
+        <div class="cart-item-row">
+          <div class="cart-item-info"><%= item.product_name %> × <%= item.quantity %></div>
+          <strong><%= item.lineTotal.toFixed(2) %> ج.م</strong>
+        </div>
+      <% }) %>
+      <div class="cart-summary-row" style="margin-top:6px;">
+        <span>إجمالي المنتجات</span>
+        <span><%= group.subtotal.toFixed(2) %> ج.م</span>
+      </div>
+      <div class="cart-summary-row" style="color:<%= group.shippingFee === 0 ? 'var(--color-success)' : 'var(--color-text)' %>">
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" style="vertical-align:middle;margin-left:4px;"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          مصاريف الشحن
+        </span>
+        <span style="font-weight:700;">
+          <% if (group.shippingFee === 0) { %>
+            🚚 مجاني
+          <% } else { %>
+            <%= group.shippingFee.toFixed(2) %> ج.م
+          <% } %>
+        </span>
+      </div>
+      <div class="cart-summary-row" style="border-top:2px solid var(--color-border);padding-top:10px;margin-top:4px;font-size:1rem;">
+        <span style="font-weight:700;">إجمالي المحل</span>
+        <span style="font-weight:800;color:var(--color-primary-dark);"><%= (group.subtotal + group.shippingFee).toFixed(2) %> ج.م</span>
+      </div>
+    </div>
+  <% }) %>
+
+  <div class="cart-grand-total" style="margin-bottom:24px;">
+    <span style="font-size:1.05rem;">💳 المجموع الكلي (الدفع عند الاستلام)</span>
+    <span style="font-size:1.2rem;"><%= grandTotal.toFixed(2) %> ج.م</span>
+  </div>
+
+  <form action="/customer/checkout" method="POST" class="card-form" style="max-width:100%;">
+    <h2 style="font-size:1.05rem;font-weight:700;margin:0 0 16px;">بيانات التوصيل</h2>
+    <div class="form-group">
+      <label for="customerAddress">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        عنوانك بالتفصيل
+      </label>
+      <textarea id="customerAddress" name="customerAddress" rows="3" required placeholder="مثال: شارع السلام، جنب مسجد النور، مغاغة"><%= old.customerAddress || '' %></textarea>
+    </div>
+    <div class="form-group">
+      <label for="customerPhone">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 12 19.79 19.79 0 011.58 3.45 2 2 0 013.55 1.27h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 8.82a16 16 0 006.27 6.27l1.62-1.62a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        رقم تليفونك
+      </label>
+      <input type="tel" id="customerPhone" name="customerPhone" value="<%= old.customerPhone || currentUser.phone || '' %>" required placeholder="01012345678" inputmode="numeric">
+    </div>
+    <div style="background:#f8faf9;border:1px solid var(--color-border);border-radius:10px;padding:12px 16px;margin-bottom:16px;color:var(--color-muted);font-size:0.88rem;display:flex;gap:8px;align-items:flex-start;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>طريقة الدفع: <strong>الدفع عند الاستلام (كاش)</strong></span>
+    </div>
+    <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;font-size:1.05rem;padding:14px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      أكّد الطلب
+    </button>
+  </form>
+
+</div>
+
+<style>
+.checkout-warning-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fff8e1;
+  border: 1.5px solid #ffe082;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  color: #7c5c00;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  font-weight: 500;
+}
+.checkout-warning-banner svg {
+  stroke: #d4a017;
+}
+</style>
+
+<%- include('../partials/footer') %>

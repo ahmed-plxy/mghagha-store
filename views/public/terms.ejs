@@ -1,0 +1,475 @@
+<%- include('../partials/header', { title: 'السياسات القانونية' }) %>
+
+<div class="legal-page container" style="max-width:860px;padding-bottom:60px;">
+
+  <div class="legal-hero">
+    <div class="legal-hero-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <div>
+      <h1 class="legal-hero-title">السياسات القانونية لمتجر مغاغة</h1>
+      <p class="legal-hero-sub">آخر تحديث: <%= new Date().toLocaleDateString('ar-EG', {year:'numeric',month:'long',day:'numeric'}) %></p>
+    </div>
+  </div>
+
+  <nav class="legal-tabs" id="legalTabs" aria-label="أقسام السياسات">
+    <a href="#terms"   class="legal-tab active" data-tab="terms">شروط الاستخدام</a>
+    <a href="#fraud"   class="legal-tab" data-tab="fraud">الاحتيال والشكاوى</a>
+    <a href="#billing" class="legal-tab" data-tab="billing">الفوترة والعمولات</a>
+    <a href="#ip"      class="legal-tab" data-tab="ip">الملكية الفكرية</a>
+  </nav>
+
+  <%# ── SECTION 1: Terms of Service ──────────────────────────── %>
+  <section class="legal-section" id="terms" data-section="terms">
+    <div class="legal-section-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      شروط الاستخدام
+    </div>
+
+    <div class="legal-block">
+      <h2 class="legal-h2">طبيعة المنصة ودورها</h2>
+      <p>تطبيق <strong>متجر مغاغة</strong> هو منصة وساطة إعلانية تتيح للأفراد والتجار نشر إعلانات بيع المنتجات والخدمات داخل منطقة مغاغة والمناطق المجاورة. التطبيق لا يُعدّ طرفاً في أي عملية بيع أو شراء، ولا يضمن صحة الإعلانات أو جودة المنتجات أو أي عمليات دفع أو شحن خارج المنصة.</p>
+    </div>
+
+    <div class="legal-block">
+      <h2 class="legal-h2">شروط الاستخدام الأساسية</h2>
+      <ul class="legal-list">
+        <li>يجب أن يكون المستخدم قد أتمّ <strong>18 عاماً</strong> على الأقل للتسجيل في المنصة.</li>
+        <li>يُحظر نشر إعلانات لمنتجات مزيفة أو مسروقة أو ممنوعة قانونياً في مصر.</li>
+        <li>يجب أن تكون جميع المعلومات المُدخلة في الإعلان صحيحة ودقيقة وغير مضللة.</li>
+        <li>يُحظر التواصل بأسلوب غير لائق أو استخدام ألفاظ مسيئة داخل خدمة الرسائل.</li>
+        <li>يحق لإدارة التطبيق حذف أي إعلان يخالف سياسة الاستخدام <strong>دون إشعار مسبق</strong>.</li>
+        <li>يحق للإدارة تعليق أو إلغاء الحساب في حالة الانتهاكات المتكررة أو الجسيمة.</li>
+        <li>لا يُسمح بإنشاء أكثر من حساب واحد لنفس الشخص أو الجهة.</li>
+      </ul>
+    </div>
+
+    <div class="legal-block">
+      <h2 class="legal-h2">التزامات البائع</h2>
+      <ul class="legal-list">
+        <li>يلتزم البائع بوصف المنتج وصفاً دقيقاً وبذكر أي عيوب أو مشاكل به قبل البيع.</li>
+        <li>يلتزم البائع بتسليم المنتج المُعلَن عنه في الموعد والمكان المتفق عليهما.</li>
+        <li>يُحظر المطالبة بدفعة مسبقة قبل معاينة البضاعة إلا في حالات الاتفاق الصريح الموثق.</li>
+        <li>في حالة إلغاء الصفقة، يلتزم البائع بإشعار المشتري فوراً وبطريقة واضحة.</li>
+        <li>يتحمّل البائع مسؤولية دقة المعلومات الواردة في إعلانه بشكل كامل.</li>
+      </ul>
+    </div>
+
+    <div class="legal-safety-card">
+      <div class="legal-safety-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        إرشادات الأمان للمشتري
+      </div>
+      <div class="legal-safety-items">
+        <div class="legal-safety-item"><span class="legal-safety-icon">🤝</span><span>قابل البائع دائماً في مكان عام ومضاء وبه أناس.</span></div>
+        <div class="legal-safety-item"><span class="legal-safety-icon">💳</span><span>لا تحوّل مبالغ مالية أو عربون قبل استلام البضاعة ومعاينتها شخصياً.</span></div>
+        <div class="legal-safety-item"><span class="legal-safety-icon">🔍</span><span>افحص حالة المنتج التقنية والمادية بشكل كامل قبل إتمام الصفقة.</span></div>
+        <div class="legal-safety-item"><span class="legal-safety-icon">📢</span><span>المنصة وسيط إعلاني فقط ولا تضمن أي عمليات دفع أو شحن خارجية.</span></div>
+      </div>
+    </div>
+
+    <div class="legal-block">
+      <h2 class="legal-h2">إخلاء المسؤولية</h2>
+      <p>لا يتحمل تطبيق مغاغة أي مسؤولية عن خسائر أو أضرار ناتجة عن المعاملات بين المستخدمين، ولا عن جودة أو أصالة المنتجات المُعلَن عنها، ولا عن الخلافات التي تنشأ بين المشتري والبائع خارج نطاق المنصة.</p>
+    </div>
+  </section>
+
+  <%# ── SECTION 2: Fraud & Complaints ────────────────────────── %>
+  <section class="legal-section legal-section--hidden" id="fraud" data-section="fraud">
+    <div class="legal-section-badge legal-section-badge--red">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      سياسة الاحتيال والشكاوى
+    </div>
+
+    <div class="legal-block">
+      <h2 class="legal-h2">تعريف الاحتيال في المنصة</h2>
+      <p>يُعدّ احتيالاً كل فعل يهدف إلى الاستيلاء على أموال المستخدمين بطرق خادعة، ومن أبرزه:</p>
+      <ul class="legal-list">
+        <li>طلب دفع مقدم (عربون) ثم اختفاء البائع دون تسليم المنتج.</li>
+        <li>الإعلان عن منتج وهمي لا يملكه البائع في الحقيقة.</li>
+        <li>إرسال صور لمنتج مختلف تماماً عن المنتج المُعلَن عنه.</li>
+        <li>انتحال صفة البائع أو ادعاء الوساطة مقابل عمولة بدون اتفاق مسبق.</li>
+        <li>إنشاء حسابات وهمية لنشر تقييمات إيجابية مزيفة.</li>
+      </ul>
+    </div>
+
+    <div class="legal-block">
+      <h2 class="legal-h2">كيفية تقديم شكوى</h2>
+      <p>إذا تعرضت لاحتيال أو انتهاك، يمكنك الإبلاغ بأكثر من طريقة:</p>
+      <div class="legal-steps">
+        <div class="legal-step">
+          <span class="legal-step-num">١</span>
+          <div><strong>داخل المنصة:</strong> استخدم زر "الإبلاغ" الموجود في المحادثة أو صفحة المنتج لإبلاغ الإدارة مباشرة.</div>
+        </div>
+        <div class="legal-step">
+          <span class="legal-step-num">٢</span>
+          <div><strong>واتساب الدعم:</strong> تواصل على الرقم <a href="https://wa.me/201006039597" target="_blank" rel="noopener" style="color:var(--color-primary);font-weight:600;">+20 100 603 9597</a> مع تفاصيل الشكوى والأدلة.</div>
+        </div>
+        <div class="legal-step">
+          <span class="legal-step-num">٣</span>
+          <div><strong>البريد الإلكتروني:</strong> أرسل تفاصيل الواقعة إلى <a href="mailto:mghagha.store.com" style="color:var(--color-primary);">mghagha.store.com</a>.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legal-block">
+      <h2 class="legal-h2">الإجراءات بعد استلام الشكوى</h2>
+      <ul class="legal-list">
+        <li>تُراجع الإدارة كل شكوى واردة خلال <strong>مدة أقصاها 48 ساعة</strong> من تاريخ الإبلاغ.</li>
+        <li>يتم إيقاف حساب المُبلَّغ عنه مؤقتاً ريثما تتضح الوقائع.</li>
+        <li>في حالة ثبوت الاحتيال، يُلغى الحساب نهائياً ويُحظر.</li>
+        <li>لا تضمن المنصة استرداد المبالغ المدفوعة خارج نطاق المنصة، لكنها تُوثّق الحالة وتُحيلها للجهات المختصة عند الطلب.</li>
+      </ul>
+    </div>
+
+    <div class="legal-info-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <p>تذكير: المنصة لا تطلب أبداً بيانات بطاقتك البنكية أو كلمة سرك. أي طلب من هذا القبيل هو محاولة احتيال.</p>
+    </div>
+  </section>
+
+  <%# ── SECTION 3: Billing & Commission ──────────────────────── %>
+  <section class="legal-section legal-section--hidden" id="billing" data-section="billing">
+    <div class="legal-section-badge legal-section-badge--blue">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      سياسة الفوترة والعمولات
+    </div>
+
+    <div class="legal-block">
+      <h2 class="legal-h2">النموذج الحالي للعمولات</h2>
+      <p>في المرحلة الحالية من تشغيل المنصة، <strong>تقديم الخدمة مجاني بالكامل</strong> للبائعين الأفراد ولأصحاب المتاجر. لا توجد رسوم تسجيل أو عمولات على المبيعات في الوقت الراهن.</p>
+    </div>
+
+    <div class="legal-block">
+      <h2 class="legal-h2">الإعلانات الممولة (الباجات المدفوعة)</h2>
+      <ul class="legal-list">
+        <li>يمكن لأصحاب المتاجر رفع مستوى ظهور إعلاناتهم عبر شراء <strong>باجات إعلانية</strong> تُعرض في الصفحة الرئيسية.</li>
+        <li>تُحدَّد أسعار الباجات الإعلانية بالتراضي وفقاً لمدة العرض والمساحة المطلوبة.</li>
+        <li>تُسدَّد مدفوعات الباجات عبر التحويل البنكي أو الدفع النقدي حسب الاتفاق.</li>
+        <li>لا يوجد استرداد للمبالغ المدفوعة للإعلانات بعد نشرها، إلا في حالة خطأ من إدارة المنصة.</li>
+      </ul>
+    </div>
+
+    <div class="legal-block">
+      <h2 class="legal-h2">التغييرات المستقبلية في نموذج الأسعار</h2>
+      <p>تحتفظ إدارة المنصة بحق تغيير هيكل الأسعار أو إضافة خطط اشتراك مدفوعة في المستقبل. في حالة إدخال أي تغييرات جوهرية على الأسعار، سيتم:</p>
+      <ul class="legal-list">
+        <li>إشعار جميع المستخدمين المسجلين <strong>قبل 30 يوماً</strong> على الأقل من تطبيق التغيير.</li>
+        <li>عرض إمكانية إلغاء الحساب لمن لا يرغب في الاستمرار في ظل الشروط الجديدة.</li>
+      </ul>
+    </div>
+
+    <div class="legal-info-box legal-info-box--green">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <p>الإعلان العادي لبيع القطع الشخصية والمستعملة مجاني تماماً ولا يخضع لأي رسوم.</p>
+    </div>
+  </section>
+
+  <%# ── SECTION 4: Intellectual Property ─────────────────────── %>
+  <section class="legal-section legal-section--hidden" id="ip" data-section="ip">
+    <div class="legal-section-badge legal-section-badge--purple">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      الملكية الفكرية والحقوق
+    </div>
+
+    <div class="legal-block">
+      <h2 class="legal-h2">ملكية المنصة</h2>
+      <p>جميع عناصر منصة <strong>متجر مغاغة</strong> — من تصميم وشعار وواجهة مستخدم وبرمجيات وأنظمة قواعد البيانات — هي ملك حصري لأصحاب المنصة وتخضع لقوانين الملكية الفكرية المصرية والدولية. يُحظر نسخها أو استخدامها أو توزيعها جزئياً أو كلياً دون إذن مسبق وصريح بالكتابة.</p>
+    </div>
+
+    <div class="legal-block">
+      <h2 class="legal-h2">محتوى المستخدمين</h2>
+      <ul class="legal-list">
+        <li>يتحمّل المستخدم المسؤولية الكاملة عن كل محتوى (صور، نصوص، أسعار) يرفعه أو ينشره في المنصة.</li>
+        <li>بنشر إعلانك، تمنح المنصة حق عرض هذا المحتوى لأغراض تشغيل الخدمة فقط، دون نقل ملكيته.</li>
+        <li>يُحظر نشر محتوى محمي بحقوق الطبع والنشر لا تملك حق توزيعه (صور مسروقة، محتوى تجاري…).</li>
+        <li>تحتفظ المنصة بالحق في حذف أي محتوى مخالف لهذه السياسة فوراً.</li>
+      </ul>
+    </div>
+
+    <div class="legal-block">
+      <h2 class="legal-h2">الإبلاغ عن انتهاك حقوق الملكية</h2>
+      <p>إذا كنت تعتقد أن محتوى منشوراً على المنصة ينتهك حقوق الملكية الفكرية الخاصة بك، يرجى التواصل معنا فوراً بإرسال:</p>
+      <ul class="legal-list">
+        <li>وصف واضح للمحتوى المنتهِك وموقعه (رابط الإعلان).</li>
+        <li>إثبات ملكيتك للمحتوى الأصلي (شهادة تسجيل، فاتورة شراء، ما يثبت الأولوية).</li>
+        <li>بيانات التواصل الخاصة بك لمتابعة البلاغ.</li>
+      </ul>
+      <p>سيتم مراجعة البلاغ والبت فيه خلال <strong>7 أيام عمل</strong> من الاستلام.</p>
+    </div>
+
+    <div class="legal-block">
+      <h2 class="legal-h2">العلامات التجارية</h2>
+      <p>اسم "متجر مغاغة" وشعاره هما علامة تجارية خاصة بالمنصة. يُحظر استخدامهما أو تقليدهما في أي سياق تجاري أو ترويجي دون إذن خطي مسبق.</p>
+    </div>
+  </section>
+
+  <div class="legal-contact-bar">
+    <p class="legal-contact-title">هل تحتاج إلى مساعدة أو توضيح؟</p>
+    <div class="legal-contact-btns">
+      <a href="https://wa.me/201006039597" target="_blank" rel="noopener" class="legal-contact-btn legal-contact-wa">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        تواصل على واتساب
+      </a>
+      <a href="mailto:mghagha.store.com" class="legal-contact-btn legal-contact-email">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        راسلنا بالبريد
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.legal-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 24px 0 20px;
+}
+.legal-hero-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #155c38 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+}
+.legal-hero-title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  margin: 0 0 4px;
+  color: var(--color-text);
+}
+.legal-hero-sub {
+  font-size: .85rem;
+  color: var(--color-muted);
+  margin: 0;
+}
+
+.legal-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  margin-bottom: 28px;
+  border-bottom: 2px solid var(--color-border);
+  scrollbar-width: none;
+}
+.legal-tabs::-webkit-scrollbar { display: none; }
+.legal-tab {
+  padding: 10px 18px;
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-decoration: none;
+  border-radius: 8px 8px 0 0;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color .15s, border-color .15s;
+}
+.legal-tab:hover {
+  color: var(--color-text);
+  text-decoration: none;
+}
+.legal-tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  background: rgba(38,120,67,.06);
+}
+
+.legal-section { display: block; }
+.legal-section--hidden { display: none; }
+
+.legal-section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(38,120,67,.1);
+  color: var(--color-primary);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: .9rem;
+  margin-bottom: 24px;
+}
+.legal-section-badge--red { background: rgba(220,38,38,.08); color: #dc2626; }
+.legal-section-badge--blue { background: rgba(37,99,235,.08); color: #2563eb; }
+.legal-section-badge--purple { background: rgba(124,58,237,.08); color: #7c3aed; }
+
+.legal-block {
+  margin-bottom: 28px;
+}
+.legal-h2 {
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px solid var(--color-border);
+}
+.legal-block p {
+  font-size: .9rem;
+  color: var(--color-text);
+  line-height: 1.75;
+  margin: 0 0 10px;
+}
+.legal-list {
+  padding-right: 0;
+  margin: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.legal-list li {
+  font-size: .88rem;
+  color: var(--color-text);
+  line-height: 1.65;
+  padding-right: 20px;
+  position: relative;
+}
+.legal-list li::before {
+  content: '•';
+  position: absolute;
+  right: 0;
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+.legal-safety-card {
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 28px;
+}
+[data-theme="dark"] .legal-safety-card {
+  background: rgba(38,120,67,.1);
+  border-color: rgba(38,120,67,.3);
+}
+.legal-safety-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: .95rem;
+  color: #14532d;
+  margin-bottom: 14px;
+}
+[data-theme="dark"] .legal-safety-title { color: var(--color-primary); }
+.legal-safety-items { display: flex; flex-direction: column; gap: 10px; }
+.legal-safety-item { display: flex; gap: 10px; align-items: flex-start; }
+.legal-safety-icon { font-size: 1.15rem; flex-shrink: 0; margin-top: 1px; }
+.legal-safety-item span:last-child { font-size: .88rem; color: #14532d; line-height: 1.6; }
+[data-theme="dark"] .legal-safety-item span:last-child { color: var(--color-text); }
+
+.legal-steps { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.legal-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--color-bg-alt);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.legal-step-num {
+  width: 28px;
+  height: 28px;
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: .88rem;
+  flex-shrink: 0;
+}
+.legal-step div { font-size: .88rem; line-height: 1.65; color: var(--color-text); }
+
+.legal-info-box {
+  background: rgba(220,38,38,.06);
+  border: 1.5px solid rgba(220,38,38,.2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  color: #dc2626;
+  margin-bottom: 20px;
+}
+.legal-info-box--green {
+  background: rgba(38,120,67,.07);
+  border-color: rgba(38,120,67,.25);
+  color: var(--color-primary);
+}
+.legal-info-box p { margin: 0; font-size: .88rem; line-height: 1.6; color: inherit; }
+.legal-info-box svg { flex-shrink: 0; margin-top: 2px; }
+
+.legal-contact-bar {
+  background: var(--color-bg-alt);
+  border: 1.5px solid var(--color-border);
+  border-radius: 16px;
+  padding: 22px;
+  text-align: center;
+  margin-top: 40px;
+}
+.legal-contact-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-text);
+  margin: 0 0 14px;
+}
+.legal-contact-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.legal-contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: 10px;
+  font-size: .9rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity .15s;
+}
+.legal-contact-btn:hover { opacity: .85; text-decoration: none; }
+.legal-contact-wa { background: #25d366; color: #fff; }
+.legal-contact-email { background: var(--color-card); color: var(--color-text); border: 1.5px solid var(--color-border); }
+</style>
+
+<script>
+(function() {
+  var tabs = document.querySelectorAll('.legal-tab');
+  var sections = document.querySelectorAll('.legal-section');
+
+  function activate(tabId) {
+    tabs.forEach(function(t) { t.classList.toggle('active', t.dataset.tab === tabId); });
+    sections.forEach(function(s) { s.classList.toggle('legal-section--hidden', s.dataset.section !== tabId); });
+  }
+
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function(e) {
+      e.preventDefault();
+      activate(tab.dataset.tab);
+      history.replaceState(null, '', '#' + tab.dataset.tab);
+    });
+  });
+
+  var hash = window.location.hash.replace('#', '');
+  if (hash && document.getElementById(hash)) activate(hash);
+})();
+</script>
+
+<%- include('../partials/footer') %>

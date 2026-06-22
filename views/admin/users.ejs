@@ -1,0 +1,29 @@
+<%- include('../partials/header', { title: 'المستخدمون' }) %>
+<div class="container">
+  <h1>المستخدمون</h1>
+  <table class="data-table">
+    <thead><tr><th>الاسم</th><th>الهاتف</th><th>الدور</th><th>الحالة</th><th>الإجراء</th></tr></thead>
+    <tbody>
+      <% users.forEach(function(u) { %>
+        <tr>
+          <td><%= u.full_name %></td>
+          <td><%= u.phone %></td>
+          <td><%= u.role === 'vendor' ? 'بائع' : 'عميل' %></td>
+          <td><span class="badge badge-<%= u.status === 'active' ? 'success' : 'muted' %>"><%= u.status === 'active' ? 'نشط' : 'معلّق' %></span></td>
+          <td>
+            <% if (u.status === 'active') { %>
+              <form action="/admin/users/<%= u.id %>/suspend" method="POST" class="inline-form">
+                <button type="submit" class="btn btn-small btn-danger">تعليق</button>
+              </form>
+            <% } else { %>
+              <form action="/admin/users/<%= u.id %>/activate" method="POST" class="inline-form">
+                <button type="submit" class="btn btn-small btn-secondary">تفعيل</button>
+              </form>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<%- include('../partials/footer') %>

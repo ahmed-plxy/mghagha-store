@@ -1,0 +1,25 @@
+<%- include('../partials/header', { title: 'طلباتي' }) %>
+<div class="container">
+  <h1>طلباتي</h1>
+
+  <% if (groupedOrders.length === 0) { %>
+    <p>مفيش طلبات لحد دلوقتي. <a href="/products">تصفح المنتجات</a></p>
+  <% } else { %>
+    <% groupedOrders.forEach(function(group) { %>
+      <div class="order-group-card">
+        <p class="card-meta">تاريخ الطلب: <%= group.createdAt %></p>
+        <% group.orders.forEach(function(order) { %>
+          <div class="order-store-row">
+            <div>
+              <strong><%= order.store_name %></strong>
+              <p class="card-meta">رقم الطلب: <%= order.order_number %></p>
+            </div>
+            <span class="badge badge-success"><%= orderStatusLabel(order.order_status) %></span>
+            <a href="/customer/orders/<%= order.id %>" class="btn btn-small btn-secondary">عرض التفاصيل</a>
+          </div>
+        <% }) %>
+      </div>
+    <% }) %>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>
