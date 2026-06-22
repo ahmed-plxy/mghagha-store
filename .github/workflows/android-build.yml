@@ -142,4 +142,65 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('mobile-app/android/**/*.gradle*', 'mobile-app/android/**/gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('mobile-app/android/**/*.gradle*', 'mobile-app/android/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # ── Build release APK ─────────────────────────────────────────────────────
+      - name: Build release APK
+        working-directory: mobile-app/android
+        run: ./gradlew assembleRelease --no-daemon --stacktrace --info --console=plain
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/mobile-app/android/release-keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      # ── Build release AAB (Google Play) ───────────────────────────────────────
+      - name: Build release AAB
+        working-directory: mobile-app/android
+        run: ./gradlew bundleRelease --no-daemon --stacktrace --info --console=plain
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/mobile-app/android/release-keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      # ── Dump Android files on failure ─────────────────────────────────────────
+      - name: Dump Android files on failure
+        if: failure()
+        working-directory: mobile-app
+        run: |
+          echo "===== build.gradle ====="
+          sed -n '1,260p' android/app/build.gradle || true
+
+          echo "===== AndroidManifest.xml ====="
+          sed -n '1,260p' android/app/src/main/AndroidManifest.xml || true
+
+          echo "===== configure-signing.js ====="
+          sed -n '1,260p' scripts/configure-signing.js || true
+
+      # ── Upload APK artifact ───────────────────────────────────────────────────
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: mghagha-store-release-apk
+          path: mobile-app/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+
+      # ── Upload AAB artifact ───────────────────────────────────────────────────
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: mghagha-store-release-aab
+          path: mobile-app/android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      # ── Attach to GitHub Release (tag pushes only) ────────────────────────────
+      - name: Upload to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            mobile-app/android/app/build/outputs/apk/release/app-release.apk
+            mobile-app/android/app/build/outputs/bundle/release/app-release.aab
