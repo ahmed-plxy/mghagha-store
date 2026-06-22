@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>متجر مغاغة</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #1e7a4c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, Tahoma, Arial, sans-serif;
+      color: #ffffff;
+      text-align: center;
+    }
+    .boot-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 8px; }
+    .boot-sub { font-size: 0.95rem; opacity: 0.85; }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="boot-title">متجر مغاغة</div>
+    <div class="boot-sub">جاري التحميل...</div>
+  </div>
+
+  <!-- Capacitor Core (injected by cap sync) -->
+  <script src="capacitor.js"></script>
+
+  <script>
+    // ── Configuration ──────────────────────────────────────────────────────
+    var APP_VERSION      = '1.0.0';
+    var ONESIGNAL_APP_ID = '157460ff-c4f1-4fca-af04-a0740f39a14f';
+    var SERVER_URL       = 'https://mghagha-projectzip--josenberlo.replit.app';
+
+    // ── OneSignal + App bootstrap ──────────────────────────────────────────
+    document.addEventListener('deviceready', function () {
+
+      // ── OneSignal Native Capacitor Init ──────────────────────────────────
+      // onesignal-capacitor exposes window.OneSignal after cap sync + build
+      if (window.OneSignal) {
+        // 1. Initialize with your OneSignal App ID
+        window.OneSignal.initialize(ONESIGNAL_APP_ID);
+
+        // 2. Android 13+ POST_NOTIFICATIONS runtime permission
+        //    OneSignal Capacitor SDK shows the system permission dialog automatically
+        window.OneSignal.Notifications.requestPermission(true);
+
+        // 3. Listen for permission state changes
+        window.OneSignal.Notifications.addEventListener(
+          'permissionChange',
+          function (granted) {
+            console.log('[OneSignal] Notification permission granted:', granted);
+          }
+        );
+
+        // 4. Listen for incoming push notifications (foreground)
+        window.OneSignal.Notifications.addEventListener(
+          'foregroundWillDisplay',
+          function (event) {
+            console.log('[OneSignal] Foreground notification:', event.notification.title);
+            // Display the notification even when the app is open
+            event.notification.display();
+          }
+        );
+
+        // 5. Handle notification tap / open
+        window.OneSignal.Notifications.addEventListener(
+          'click',
+          function (event) {
+            var url = event.notification.launchURL
+                   || (event.notification.additionalData && event.notification.additionalData.url);
+            if (url) {
+              window.location.href = url;
+            }
+          }
+        );
+
+        // 6. Observe subscription changes (device token registration)
+        window.OneSignal.User.pushSubscription.addEventListener(
+          'change',
+          function (change) {
+            var id    = change.current.id;
+            var token = change.current.token;
+            var opted = change.current.optedIn;
+            console.log('[OneSignal] Subscription change — id:', id, 'opted:', opted);
+          }
+        );
+
+        // 7. Log current subscription state once ready
+        try {
+          var sub = window.OneSignal.User.pushSubscription;
+          console.log('[OneSignal] Current subscription id:', sub.id);
+          console.log('[OneSignal] Push token:', sub.token);
+        } catch (e) {
+          // Available after the user opts in
+        }
+
+      } else {
+        console.warn('[OneSignal] window.OneSignal not found — did cap sync run?');
+      }
+
+      // ── App Version Check ─────────────────────────────────────────────────
+      fetch(SERVER_URL + '/api/app-version')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (window.MghaghaApp) {
+            window.MghaghaApp.checkVersion(APP_VERSION);
+          } else {
+            var current = APP_VERSION.split('.').map(Number);
+            var min     = (data.minVersion    || '1.0.0').split('.').map(Number);
+            var latest  = (data.latestVersion || '1.0.0').split('.').map(Number);
+            function lt(a, b) {
+              for (var i = 0; i < 3; i++) {
+                if (a[i] < b[i]) return true;
+                if (a[i] > b[i]) return false;
+              }
+              return false;
+            }
+            var isBelowMin = lt(current, min);
+            var hasNew     = lt(current, latest);
+            if ((isBelowMin || (hasNew && data.forceUpdate)) && data.apkUrl) {
+              showUpdateDialog(data.updateMessage, data.apkUrl, false);
+            } else if (hasNew && data.apkUrl) {
+              showUpdateDialog(data.updateMessage, data.apkUrl, true);
+            }
+          }
+        })
+        .catch(function () {});
+
+    });
+
+    function showUpdateDialog(message, apkUrl, canDismiss) {
+      var overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:24px;direction:rtl;';
+      var box = document.createElement('div');
+      box.style.cssText = 'background:#fff;border-radius:16px;padding:28px 24px;max-width:360px;width:100%;font-family:Tahoma,Arial,sans-serif;';
+      box.innerHTML = '<div style="font-size:2rem;text-align:center;margin-bottom:10px;">📲</div>'
+        + '<h3 style="margin:0 0 10px;font-size:1.1rem;text-align:center;color:#1a1a1a;">تحديث التطبيق</h3>'
+        + '<p style="margin:0 0 20px;color:#555;font-size:0.9rem;line-height:1.6;text-align:center;">' + message + '</p>'
+        + '<a href="' + apkUrl + '" style="display:block;background:#1e7a4c;color:#fff;text-align:center;padding:13px;border-radius:10px;text-decoration:none;font-weight:700;font-size:0.95rem;margin-bottom:' + (canDismiss ? '10px' : '0') + ';">⬇️ تحديث الآن</a>'
+        + (canDismiss ? '<button onclick="this.closest(\'[data-ud]\').remove()" style="width:100%;background:none;border:1px solid #ccc;border-radius:10px;padding:11px;color:#555;cursor:pointer;font-size:0.9rem;">لاحقاً</button>' : '');
+      overlay.setAttribute('data-ud', '1');
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+    }
+  </script>
+</body>
+</html>

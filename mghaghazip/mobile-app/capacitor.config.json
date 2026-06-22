@@ -1,0 +1,32 @@
+{
+  "appId": "com.mghagha.store",
+  "appName": "متجر مغاغة",
+  "webDir": "www",
+  "server": {
+    "url": "https://mghagha-projectzip--josenberlo.replit.app",
+    "androidScheme": "https",
+    "cleartext": false
+  },
+  "android": {
+    "allowMixedContent": false,
+    "buildOptions": {
+      "keystorePath": "release-keystore.jks",
+      "keystoreAlias": "mghagha"
+    }
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1200,
+      "backgroundColor": "#1e7a4c",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "dark",
+      "backgroundColor": "#1e7a4c"
+    },
+    "OneSignal": {
+      "appId": "157460ff-c4f1-4fca-af04-a0740f39a14f"
+    }
+  }
+}

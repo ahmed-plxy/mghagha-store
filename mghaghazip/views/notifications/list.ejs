@@ -1,0 +1,189 @@
+<%- include('../partials/header', { title: 'الإشعارات' }) %>
+<div class="container">
+
+  <div class="page-header-row" style="margin-bottom:20px;">
+    <div>
+      <h1 style="margin:0 0 4px;font-size:1.4rem;">الإشعارات</h1>
+      <p style="margin:0;color:var(--color-muted);font-size:0.88rem;">
+        <% var unread = notifications.filter(function(n){ return !n.is_read; }).length; %>
+        <%= notifications.length %> إشعار<% if (unread > 0) { %> · <span style="color:var(--color-danger);font-weight:600;"><%= unread %> غير مقروء</span><% } %>
+      </p>
+    </div>
+  </div>
+
+  <% if (notifications.length === 0) { %>
+    <div class="notif-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="52" height="52"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <p>لا توجد إشعارات حتى الآن</p>
+    </div>
+  <% } else { %>
+    <div class="notif-list">
+      <% notifications.forEach(function(n) {
+        var t = (n.title || '').toLowerCase();
+        var type = 'general';
+        if (t.indexOf('طلب') !== -1 || t.indexOf('order') !== -1 || t.indexOf('شحن') !== -1 || t.indexOf('تسليم') !== -1) type = 'order';
+        else if (t.indexOf('تقييم') !== -1 || t.indexOf('review') !== -1) type = 'review';
+        else if (t.indexOf('متجر') !== -1 || t.indexOf('بائع') !== -1 || t.indexOf('موافق') !== -1 || t.indexOf('رفض') !== -1 || t.indexOf('admin') !== -1) type = 'admin';
+        else if (t.indexOf('رسالة') !== -1 || t.indexOf('محادثة') !== -1) type = 'message';
+      %>
+        <div class="notif-card <%= n.is_read ? 'notif-card--read' : 'notif-card--unread' %>">
+          <div class="notif-icon notif-icon--<%= type %>">
+            <% if (type === 'order') { %>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12.89 1.45l8 4A2 2 0 0122 7.24v9.53a2 2 0 01-1.11 1.79l-8 4a2 2 0 01-1.78 0l-8-4A2 2 0 012 16.77V7.24a2 2 0 011.11-1.79l8-4a2 2 0 011.78 0z"/><polyline points="2.32 6.16 12 11 21.68 6.16"/><line x1="12" y1="22.76" x2="12" y2="11"/></svg>
+            <% } else if (type === 'review') { %>
+              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <% } else if (type === 'admin') { %>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <% } else if (type === 'message') { %>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            <% } else { %>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <% } %>
+          </div>
+          <div class="notif-body">
+            <p class="notif-title"><%= n.title %></p>
+            <% if (n.body) { %><p class="notif-desc"><%= n.body %></p><% } %>
+            <span class="notif-time" data-ts="<%= n.created_at %>">
+              <%= n.created_at %>
+            </span>
+          </div>
+          <% if (!n.is_read) { %><span class="notif-dot"></span><% } %>
+          <% if (n.link) { %>
+            <a href="<%= n.link %>" class="notif-action">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg>
+            </a>
+          <% } %>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+</div>
+
+<script>
+(function() {
+  function relTime(dateStr) {
+    var d = new Date(dateStr.indexOf('Z') !== -1 ? dateStr : dateStr + 'Z');
+    var diff = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (diff < 60) return 'منذ لحظات';
+    if (diff < 3600) { var m = Math.floor(diff / 60); return 'منذ ' + m + (m === 1 ? ' دقيقة' : ' دقيقة'); }
+    if (diff < 86400) { var h = Math.floor(diff / 3600); return 'منذ ' + h + (h === 1 ? ' ساعة' : ' ساعة'); }
+    if (diff < 2592000) { var day = Math.floor(diff / 86400); return 'منذ ' + day + (day === 1 ? ' يوم' : ' يوم'); }
+    var mo = Math.floor(diff / 2592000); return 'منذ ' + mo + ' شهر';
+  }
+  document.querySelectorAll('.notif-time[data-ts]').forEach(function(el) {
+    el.textContent = relTime(el.getAttribute('data-ts'));
+  });
+})();
+</script>
+
+<style>
+.notif-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--color-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.notif-empty svg { stroke: var(--color-muted); opacity: 0.35; }
+
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notif-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  position: relative;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.notif-card--unread {
+  border-color: var(--color-primary);
+  background: #f4faf7;
+}
+[data-theme="dark"] .notif-card--unread {
+  background: #0f2119;
+  border-color: var(--color-primary);
+}
+.notif-card:hover {
+  box-shadow: 0 2px 12px rgba(30,122,76,0.09);
+}
+
+.notif-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.notif-icon--order { background: #e8f4fd; color: #2980b9; }
+.notif-icon--order svg { stroke: #2980b9; }
+.notif-icon--review { background: #fef9e7; color: #f39c12; fill: #f39c12; }
+.notif-icon--review svg { fill: #f39c12; stroke: none; }
+.notif-icon--admin { background: #f5eef8; color: #8e44ad; }
+.notif-icon--admin svg { stroke: #8e44ad; }
+.notif-icon--message { background: #e8f8f5; color: var(--color-primary); }
+.notif-icon--message svg { stroke: var(--color-primary); }
+.notif-icon--general { background: #fef0e7; color: #e67e22; }
+.notif-icon--general svg { stroke: #e67e22; }
+
+.notif-body { flex: 1; min-width: 0; }
+.notif-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  margin: 0 0 4px;
+  line-height: 1.4;
+}
+.notif-desc {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  margin: 0 0 6px;
+  line-height: 1.5;
+}
+.notif-time {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.notif-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.notif-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: var(--color-muted);
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: background 0.12s;
+  align-self: center;
+}
+.notif-action:hover { background: var(--color-border); }
+.notif-action svg { stroke: var(--color-muted); }
+</style>
+
+<%- include('../partials/footer') %>

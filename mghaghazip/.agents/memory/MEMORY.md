@@ -1,0 +1,3 @@
+- [Brevo email setup](brevo-setup.md) — switched from SMTP to HTTP API; SMTP auth always fails, HTTP API works.
+- [Auth verification flow](auth-verification-flow.md) — pendingVerification session pattern; session only set after code verified.
+- [Users schema](users-schema.md) — area_id added in Phase 4 migration; email/Google users need it before accessing app.

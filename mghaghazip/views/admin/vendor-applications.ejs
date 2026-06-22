@@ -1,0 +1,54 @@
+<%- include('../partials/header', { title: t('app.name') }) %>
+<div class="container">
+  <h1>طلبات انضمام البائعين</h1>
+
+  <div class="tabs">
+    <a href="/admin/vendor-applications?status=pending" class="<%= currentStatus === 'pending' ? 'tab active' : 'tab' %>">قيد المراجعة</a>
+    <a href="/admin/vendor-applications?status=approved" class="<%= currentStatus === 'approved' ? 'tab active' : 'tab' %>">مقبولة</a>
+    <a href="/admin/vendor-applications?status=rejected" class="<%= currentStatus === 'rejected' ? 'tab active' : 'tab' %>">مرفوضة</a>
+  </div>
+
+  <% if (applications.length === 0) { %>
+    <p>لا توجد طلبات في هذا التصنيف حاليًا.</p>
+  <% } else { %>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>اسم المتجر</th>
+          <th>المتقدم</th>
+          <th>الهاتف</th>
+          <th>المنطقة</th>
+          <th>صور البطاقة</th>
+          <th>تاريخ التقديم</th>
+          <% if (currentStatus === 'pending') { %><th>الإجراء</th><% } %>
+        </tr>
+      </thead>
+      <tbody>
+        <% applications.forEach(function(app) { %>
+          <tr>
+            <td><%= app.store_name %></td>
+            <td><%= app.applicant_name %></td>
+            <td><%= app.applicant_phone %></td>
+            <td><%= app.area_name %></td>
+            <td>
+              <a href="/admin/vendor-applications/<%= app.id %>/id-card/front" target="_blank">الوجه الأمامي</a> |
+              <a href="/admin/vendor-applications/<%= app.id %>/id-card/back" target="_blank">الوجه الخلفي</a>
+            </td>
+            <td><%= app.created_at %></td>
+            <% if (currentStatus === 'pending') { %>
+              <td class="actions-cell">
+                <form action="/admin/vendor-applications/<%= app.id %>/approve" method="POST" class="inline-form">
+                  <button type="submit" class="btn btn-small btn-primary">قبول</button>
+                </form>
+                <form action="/admin/vendor-applications/<%= app.id %>/reject" method="POST" class="inline-form">
+                  <button type="submit" class="btn btn-small btn-danger">رفض</button>
+                </form>
+              </td>
+            <% } %>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

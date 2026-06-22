@@ -1,0 +1,701 @@
+<%- include('../partials/header', { title: product.name }) %>
+
+<div class="container pd-page">
+
+  <%# ── Breadcrumb ── %>
+  <p class="pd-breadcrumb">
+    <a href="/stores/<%= product.store_slug %>">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14" style="vertical-align:middle;margin-left:4px;"><polyline points="9 18 15 12 9 6"/></svg>
+      رجوع إلى <%= product.store_name %>
+    </a>
+  </p>
+
+  <%# ── Image Carousel ── %>
+  <div class="pd-carousel-wrap">
+    <% if (images.length > 0) { %>
+      <div class="pd-carousel" id="pdCarousel">
+        <div class="pd-carousel-track" id="pdTrack">
+          <% images.forEach(function(img, idx) { %>
+            <div class="pd-slide">
+              <img src="/uploads/<%= img.image_url %>" alt="<%= product.name %>" class="pd-slide-img">
+            </div>
+          <% }) %>
+        </div>
+        <% if (images.length > 1) { %>
+          <button class="pd-nav pd-nav-prev" onclick="pdGo(-1)" aria-label="السابق">&#8249;</button>
+          <button class="pd-nav pd-nav-next" onclick="pdGo(1)" aria-label="التالي">&#8250;</button>
+          <div class="pd-dots" id="pdDots">
+            <% images.forEach(function(_, idx) { %>
+              <span class="pd-dot <%= idx===0?'active':'' %>" onclick="pdGoTo(<%= idx %>)"></span>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+      <% if (images.length > 1) { %>
+        <div class="pd-thumbs">
+          <% images.forEach(function(img, idx) { %>
+            <img src="/uploads/<%= img.image_url %>" alt="" class="pd-thumb <%= idx===0?'active':'' %>" onclick="pdGoTo(<%= idx %>)">
+          <% }) %>
+        </div>
+      <% } %>
+    <% } else { %>
+      <div class="pd-no-image">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span>لا توجد صورة</span>
+      </div>
+    <% } %>
+  </div>
+
+  <%# ── Product Name & Price ── %>
+  <h1 class="pd-name"><%= product.name %></h1>
+  <p class="pd-price"><%= product.price.toFixed(0) %> <span class="pd-currency">ج.م</span></p>
+
+  <% if (product.quantity > 0) { %>
+    <p class="pd-stock pd-stock-in">✓ متوفر في المخزون (<%= product.quantity %>)</p>
+  <% } else { %>
+    <p class="pd-stock pd-stock-out">✗ غير متوفر حاليًا</p>
+  <% } %>
+
+  <%# ── Action Buttons (horizontal 70 / 30) ── %>
+  <% if (currentUser && currentUser.role === 'customer' && product.quantity > 0) { %>
+    <div class="pd-actions-row">
+      <form action="/customer/cart/add" method="POST" class="pd-cart-form">
+        <input type="hidden" name="productId" value="<%= product.id %>">
+        <input type="hidden" name="quantity" value="1">
+        <button type="submit" class="pd-btn-cart">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+          أضف للسلة
+        </button>
+      </form>
+      <form action="/customer/wishlist/toggle" method="POST" class="pd-wish-form">
+        <input type="hidden" name="productId" value="<%= product.id %>">
+        <input type="hidden" name="redirectTo" value="/stores/<%= product.store_slug %>/products/<%= product.slug %>">
+        <button type="submit" class="pd-btn-wish <%= isWishlisted ? 'wishlisted' : '' %>" title="<%= isWishlisted ? 'إزالة من المفضلة' : 'أضف للمفضلة' %>">
+          <svg viewBox="0 0 24 24" fill="<%= isWishlisted ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        </button>
+      </form>
+    </div>
+  <% } else if (!currentUser) { %>
+    <div class="pd-actions-row">
+      <a href="/auth/login" class="pd-btn-cart" style="text-align:center;text-decoration:none;flex:1;">
+        سجل الدخول لإضافة المنتج للسلة
+      </a>
+    </div>
+  <% } %>
+
+  <%# ── Description ── %>
+  <% if (product.description) { %>
+    <div class="pd-description">
+      <h3 class="pd-section-title">وصف المنتج</h3>
+      <p><%= product.description %></p>
+    </div>
+  <% } %>
+
+  <%# ── Product Details / Specs Card (all categories) ── %>
+  <% if (parsedAttributes && Object.keys(parsedAttributes).length > 0) { %>
+    <% var ATTR_LABELS = {
+      brand: 'الماركة / الشركة',
+      model: 'الموديل',
+      year: 'سنة الصنع',
+      condition: 'الحالة',
+      mileage: 'عداد الكيلومترات',
+      color: 'اللون',
+      compatible_with: 'متوافق مع',
+      storage: 'سعة التخزين',
+      ram: 'الرام',
+      battery: 'عمر البطارية',
+      size: 'المقاس',
+      warranty: 'الضمان',
+      material: 'الخامة',
+      processor: 'المعالج',
+      age: 'العمر',
+      gender: 'الجنس',
+      weight: 'الوزن التقريبي',
+      breed: 'السلالة / الفصيلة',
+      species: 'النوع / الفصيلة',
+      unit: 'وحدة البيع',
+      season: 'الموسم',
+      area_sqm: 'المساحة (م²)',
+      floor: 'الدور',
+      rooms: 'عدد الغرف',
+      bathrooms: 'عدد الحمامات',
+      finishing: 'التشطيب',
+      furnished: 'التأثيث',
+      payment_period: 'فترة الدفع',
+      experience: 'سنوات الخبرة',
+      availability: 'أوقات العمل',
+      service_area: 'منطقة الخدمة',
+      length: 'الطول',
+      motor_type: 'نوع المحرك',
+      power_hp: 'قوة المحرك (حصان)',
+      sport_type: 'نوع الرياضة',
+      bike_type: 'نوع الدراجة',
+      frame_size: 'حجم الهيكل',
+      clothing_size: 'المقاس',
+      fabric: 'القماش',
+      scent_type: 'نوع العطر',
+      watch_type: 'نوع الساعة',
+      bag_type: 'نوع الحقيبة',
+      shoe_size: 'مقاس الحذاء',
+      metal_type: 'نوع المعدن',
+      gender_target: 'الفئة المستهدفة',
+      deviceType: 'نوع الجهاز',
+      accessories: 'الإكسسوارات المرفقة',
+    }; %>
+    <div class="pd-specs-card">
+      <h3 class="pd-section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        تفاصيل المنتج
+      </h3>
+      <div class="pd-specs-grid">
+        <% Object.keys(parsedAttributes).forEach(function(key) {
+          var val = parsedAttributes[key];
+          if (val !== null && val !== undefined && val !== '') { %>
+            <div class="pd-spec-row">
+              <span class="pd-spec-label"><%= ATTR_LABELS[key] || key %></span>
+              <span class="pd-spec-value"><%= val %></span>
+            </div>
+        <% } }); %>
+      </div>
+    </div>
+  <% } %>
+
+  <%# ── Merchant Card ── %>
+  <div class="pd-merchant-card">
+    <div class="pd-merchant-row">
+      <div class="pd-merchant-info">
+        <span class="pd-merchant-label">نشر بواسطة:</span>
+        <a href="/stores/<%= product.store_slug %>" class="pd-merchant-name"><%= product.store_name %></a>
+      </div>
+      <button class="pd-report-btn" onclick="openReportModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        إبلاغ
+      </button>
+    </div>
+
+    <%# ── Contact Section ── %>
+    <div class="pd-contact-btns">
+      <% if (currentUser && currentUser.role === 'customer') { %>
+        <form action="/customer/messages/start" method="POST" style="flex:1;">
+          <input type="hidden" name="storeId" value="<%= product.store_id %>">
+          <input type="hidden" name="productName" value="<%= product.name %>">
+          <input type="hidden" name="productUrl" value="/stores/<%= product.store_slug %>/products/<%= product.slug %>">
+          <button type="submit" class="pd-btn-chat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            محادثة داخلية
+          </button>
+        </form>
+      <% } else { %>
+        <a href="/auth/login" class="pd-btn-chat" style="flex:1;text-decoration:none;text-align:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          سجل للتحدث
+        </a>
+      <% } %>
+
+      <% if (product.owner_phone && !product.owner_phone.startsWith('google_')) { %>
+        <a href="https://wa.me/<%= product.owner_phone.replace(/^0/, '20') %>?text=<%= encodeURIComponent('مرحباً، رأيت إعلانك عن: ' + product.name + ' على متجر مغاغة') %>"
+           class="pd-btn-whatsapp" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          واتساب البائع
+        </a>
+      <% } %>
+    </div>
+
+    <div class="pd-security-warning">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="flex-shrink:0;stroke:#d4a017;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>⚠️ لضمان حقك، أتمّ عملية الشراء عبر الموقع فقط. الإدارة غير مسؤولة عن أي اتفاقات خارجية.</span>
+    </div>
+  </div>
+
+  <%# ── Reviews + Submit Form ── %>
+  <div class="pd-reviews">
+    <h2 class="pd-section-title">تقييمات العملاء</h2>
+
+    <%# Existing reviews list %>
+    <% if (reviews.length === 0) { %>
+      <p class="pd-reviews-empty">لا توجد تقييمات لهذا المنتج حتى الآن.</p>
+    <% } else { %>
+      <% reviews.forEach(function(review) { %>
+        <div class="pd-review-card">
+          <div class="pd-review-header">
+            <div>
+              <strong class="pd-review-name"><%= review.reviewer_name %></strong>
+              <span class="pd-review-date"><%= review.created_at %></span>
+            </div>
+            <span class="pd-review-stars">
+              <% for(var s=1;s<=5;s++) { %>
+                <span style="color:<%= s<=review.rating ? '#f59e0b' : '#d1d5db' %>">★</span>
+              <% } %>
+            </span>
+          </div>
+          <% if (review.comment) { %><p class="pd-review-body"><%= review.comment %></p><% } %>
+        </div>
+      <% }) %>
+    <% } %>
+
+    <%# Review submission form %>
+    <% if (currentUser && currentUser.role === 'customer') { %>
+      <div class="pd-review-form-wrap">
+        <h3 class="pd-review-form-title">أضف تقييمك</h3>
+        <form action="/customer/reviews" method="POST" class="pd-review-form">
+          <input type="hidden" name="productId" value="<%= product.id %>">
+          <input type="hidden" name="redirectTo" value="/stores/<%= product.store_slug %>/products/<%= product.slug %>">
+          <input type="hidden" name="rating" id="ratingInput" value="">
+
+          <%# Interactive 5-star rating %>
+          <div class="pd-star-rating" id="starRating" aria-label="تقييم من 5 نجوم">
+            <% for(var i=5; i>=1; i--) { %>
+              <button type="button" class="pd-star" data-val="<%= i %>" aria-label="<%= i %> نجوم">★</button>
+            <% } %>
+          </div>
+          <p class="pd-star-hint" id="starHint">اختر عدد النجوم</p>
+
+          <%# Written review textarea %>
+          <textarea
+            name="comment"
+            class="pd-review-textarea"
+            placeholder="شارك تجربتك مع هذا المنتج (اختياري)..."
+            rows="3"
+            maxlength="600"
+          ></textarea>
+
+          <button type="submit" class="pd-review-submit" id="reviewSubmitBtn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+            إرسال التقييم
+          </button>
+        </form>
+      </div>
+    <% } else if (!currentUser) { %>
+      <div class="pd-review-login-prompt">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        <span>
+          <a href="/auth/login" style="color:var(--color-primary);font-weight:700;">سجل الدخول</a>
+          لإضافة تقييمك
+        </span>
+      </div>
+    <% } %>
+  </div>
+
+  <%# ── Related Products (Similar Ads) — at bottom ── %>
+  <% if (relatedProducts && relatedProducts.length > 0) { %>
+    <div class="pd-related">
+      <div class="pd-related-header">
+        <h3 class="pd-section-title" style="margin:0;">إعلانات مشابهة</h3>
+        <% if (product.category_id) { %>
+          <a href="/products?categoryId=<%= product.category_id %>" class="pd-related-more">عرض المزيد ←</a>
+        <% } %>
+      </div>
+      <div class="pd-related-scroll">
+        <% relatedProducts.forEach(function(rp) { %>
+          <a href="/stores/<%= rp.store_slug %>/products/<%= rp.slug %>" class="pd-related-card">
+            <div class="pd-related-img-wrap">
+              <% if (rp.image_url) { %>
+                <img src="/uploads/<%= rp.image_url %>" alt="<%= rp.name %>">
+              <% } else { %>
+                <div class="pd-related-no-img">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+              <% } %>
+            </div>
+            <p class="pd-related-name"><%= rp.name %></p>
+            <p class="pd-related-price"><%= rp.price.toFixed(0) %> ج.م</p>
+          </a>
+        <% }) %>
+        <% if (product.category_id) { %>
+          <a href="/products?categoryId=<%= product.category_id %>" class="pd-related-card pd-related-viewall">
+            <span>عرض المزيد</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><polyline points="15 18 9 12 15 6"/></svg>
+          </a>
+        <% } %>
+      </div>
+    </div>
+  <% } %>
+
+  <%# ── Safety Card (un-dismissable) ── %>
+  <div class="pd-safety-card">
+    <div class="pd-safety-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      سلامتك تهمّنا — متجر مغاغة
+    </div>
+    <ul class="pd-safety-list">
+      <li>🤝 قابل البائع دائماً في مكان عام ومضاء وبه أناس.</li>
+      <li>💳 لا تحوّل أي مبالغ أو عربون قبل استلام البضاعة ومعاينتها شخصياً.</li>
+      <li>🔍 افحص حالة المنتج التقنية والمادية جيداً قبل إتمام الصفقة.</li>
+      <li>📢 تطبيق مغاغة وسيط إعلاني فقط ولا يضمن أي عمليات دفع أو شحن خارجية.</li>
+    </ul>
+  </div>
+
+</div>
+
+<%# ── Report Modal ── %>
+<div class="pd-modal-overlay" id="reportModal" onclick="if(event.target===this)closeReportModal()">
+  <div class="pd-modal">
+    <div class="pd-modal-header">
+      <h3>الإبلاغ عن إعلان</h3>
+      <button class="pd-modal-close" onclick="closeReportModal()">✕</button>
+    </div>
+    <div id="reportForm">
+      <p class="pd-modal-sub">اختر سبب الإبلاغ:</p>
+      <div class="pd-report-options">
+        <label class="pd-report-option"><input type="radio" name="reportReason" value="fraud"> إعلان احتيالي أو مضلل</label>
+        <label class="pd-report-option"><input type="radio" name="reportReason" value="prohibited"> منتج ممنوع أو غير قانوني</label>
+        <label class="pd-report-option"><input type="radio" name="reportReason" value="inappropriate"> محتوى غير لائق</label>
+        <label class="pd-report-option"><input type="radio" name="reportReason" value="spam"> إعلان مكرر أو سبام</label>
+        <label class="pd-report-option"><input type="radio" name="reportReason" value="wrong_price"> سعر مزيف أو مضلل</label>
+      </div>
+      <button class="pd-btn-report-submit" onclick="submitReport()">إرسال البلاغ</button>
+    </div>
+    <div id="reportSuccess" style="display:none;text-align:center;padding:24px 0;">
+      <div style="font-size:2.5rem;margin-bottom:8px;">✅</div>
+      <p style="font-weight:700;font-size:1.05rem;">تم إرسال البلاغ بنجاح</p>
+      <p style="color:var(--color-muted);font-size:.9rem;">سيقوم فريق الإشراف بمراجعة هذا الإعلان.</p>
+      <button class="pd-btn-report-submit" style="margin-top:16px;" onclick="closeReportModal()">حسناً</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.pd-page { padding-bottom: 24px; }
+.pd-breadcrumb { margin-bottom: 14px; font-size: .88rem; }
+.pd-breadcrumb a { color: var(--color-primary); text-decoration: none; }
+
+/* Carousel */
+.pd-carousel-wrap { margin-bottom: 16px; }
+.pd-carousel {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: var(--color-bg-alt);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.pd-carousel-track { display: flex; height: 100%; transition: transform .38s cubic-bezier(.4,0,.2,1); }
+.pd-slide { min-width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f3f4f6; }
+.pd-slide-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.pd-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  background: rgba(0,0,0,.4); color: #fff; border: none;
+  border-radius: 50%; width: 36px; height: 36px; font-size: 1.3rem;
+  cursor: pointer; z-index: 2; display: flex; align-items: center; justify-content: center;
+}
+.pd-nav:hover { background: rgba(0,0,0,.65); }
+.pd-nav-prev { left: 8px; }
+.pd-nav-next { right: 8px; }
+.pd-dots { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 2; }
+.pd-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.5); cursor: pointer; transition: background .2s, transform .2s; }
+.pd-dot.active { background: #fff; transform: scale(1.3); }
+.pd-thumbs { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; padding-bottom: 4px; }
+.pd-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 2px solid transparent; cursor: pointer; flex-shrink: 0; transition: border-color .2s; }
+.pd-thumb.active, .pd-thumb:hover { border-color: var(--color-primary); }
+.pd-no-image { aspect-ratio: 4/3; background: var(--color-bg-alt); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--color-muted); }
+.pd-no-image svg { background: var(--color-card, #fff); border-radius: 50%; padding: 14px; box-sizing: content-box; opacity: 0.85; }
+
+/* Name & Price */
+.pd-name { font-size: 1.45rem; font-weight: 800; margin: 0 0 6px; line-height: 1.3; }
+.pd-price { font-size: 1.6rem; font-weight: 900; color: var(--color-primary); margin: 0 0 6px; }
+.pd-currency { font-size: 1rem; font-weight: 600; }
+.pd-stock { font-size: .88rem; font-weight: 600; margin: 0 0 14px; }
+.pd-stock-in { color: var(--color-success, #16a34a); }
+.pd-stock-out { color: var(--color-danger, #dc2626); }
+
+/* Action Buttons */
+.pd-actions-row { display: flex; gap: 10px; margin-bottom: 20px; align-items: stretch; }
+.pd-cart-form { flex: 7; }
+.pd-wish-form { flex: 3; }
+.pd-btn-cart {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--color-primary); color: #fff; border: none;
+  border-radius: 12px; padding: 14px 12px; font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: background .18s;
+}
+.pd-btn-cart:hover { background: var(--color-primary-dark, #155e38); text-decoration: none; color: #fff; }
+.pd-btn-wish {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  background: var(--color-bg-alt); color: var(--color-muted); border: 1.5px solid var(--color-border);
+  border-radius: 12px; cursor: pointer; transition: all .18s; min-height: 50px;
+}
+.pd-btn-wish.wishlisted { color: #e11d48; border-color: #e11d48; background: #fff0f3; }
+.pd-btn-wish:hover { border-color: #e11d48; color: #e11d48; }
+
+/* Description */
+.pd-description { margin-bottom: 20px; }
+.pd-section-title { display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 700; margin: 0 0 12px; color: var(--color-text); }
+
+/* Specs Card */
+.pd-specs-card {
+  background: var(--color-bg-alt); border: 1.5px solid var(--color-border);
+  border-radius: 14px; padding: 16px; margin-bottom: 20px;
+}
+.pd-specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 480px) { .pd-specs-grid { grid-template-columns: 1fr; } }
+.pd-spec-row { display: flex; flex-direction: column; gap: 2px; }
+.pd-spec-label { font-size: .78rem; color: var(--color-muted); font-weight: 600; }
+.pd-spec-value { font-size: .92rem; font-weight: 700; color: var(--color-text); }
+
+/* Merchant Card */
+.pd-merchant-card {
+  border: 1.5px solid var(--color-border); border-radius: 14px;
+  padding: 16px; margin-bottom: 20px; background: #fafbf9;
+}
+.pd-merchant-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.pd-merchant-info { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pd-merchant-label { font-size: .82rem; color: var(--color-muted); }
+.pd-merchant-name { font-weight: 700; color: var(--color-primary); text-decoration: none; font-size: .95rem; }
+.pd-merchant-name:hover { text-decoration: underline; }
+.pd-report-btn {
+  display: flex; align-items: center; gap: 5px; font-size: .78rem; color: #dc2626;
+  background: #fff0f0; border: 1px solid #fca5a5; border-radius: 20px;
+  padding: 4px 10px; cursor: pointer; font-weight: 600; flex-shrink: 0;
+}
+.pd-report-btn:hover { background: #fee2e2; }
+.pd-contact-btns { display: flex; gap: 10px; margin-bottom: 12px; }
+.pd-btn-chat {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+  background: var(--color-bg-alt); border: 1.5px solid var(--color-border);
+  border-radius: 10px; padding: 11px 10px; font-size: .88rem; font-weight: 700;
+  cursor: pointer; color: var(--color-text); transition: border-color .18s;
+}
+.pd-btn-chat:hover { border-color: var(--color-primary); color: var(--color-primary); text-decoration: none; }
+.pd-btn-whatsapp {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+  background: #25d366; color: #fff; border: none;
+  border-radius: 10px; padding: 11px 10px; font-size: .88rem; font-weight: 700;
+  text-decoration: none; transition: background .18s;
+}
+.pd-btn-whatsapp:hover { background: #1fba58; color: #fff; text-decoration: none; }
+.pd-security-warning {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: #fff8e1; border: 1px solid #ffe082; border-radius: 10px;
+  padding: 10px 12px; color: #7c5c00; font-size: .8rem; line-height: 1.5;
+}
+
+/* Related Products */
+.pd-related { margin-bottom: 28px; }
+.pd-related-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.pd-related-more { font-size: .85rem; color: var(--color-primary); text-decoration: none; font-weight: 700; }
+.pd-related-more:hover { text-decoration: underline; }
+.pd-related-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+.pd-related-card {
+  flex: 0 0 150px; border: 1.5px solid var(--color-border);
+  border-radius: 12px; overflow: hidden; text-decoration: none;
+  color: var(--color-text); background: var(--color-bg); transition: border-color .18s;
+}
+.pd-related-card:hover { border-color: var(--color-primary); }
+.pd-related-img-wrap { aspect-ratio: 1/1; background: var(--color-bg-alt); overflow: hidden; }
+.pd-related-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.pd-related-no-img { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--color-muted); }
+.pd-related-no-img svg { background: var(--color-card, #fff); border-radius: 50%; padding: 6px; box-sizing: content-box; opacity: 0.85; }
+.pd-related-name { font-size: .82rem; font-weight: 700; padding: 8px 8px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
+.pd-related-price { font-size: .88rem; font-weight: 800; color: var(--color-primary); padding: 0 8px 8px; margin: 0; }
+.pd-related-viewall {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  background: var(--color-bg-alt); color: var(--color-primary); font-weight: 700; font-size: .88rem; min-height: 120px;
+}
+
+/* Reviews */
+.pd-reviews { margin-bottom: 28px; }
+.pd-reviews-empty { color: var(--color-muted); text-align: center; padding: 20px 0 10px; font-size: .9rem; }
+.pd-review-card { border: 1.5px solid var(--color-border); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+.pd-review-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }
+.pd-review-name { font-weight: 700; font-size: .95rem; }
+.pd-review-date { display: block; font-size: .75rem; color: var(--color-muted); margin-top: 2px; }
+.pd-review-stars { font-size: 1.05rem; letter-spacing: 1px; flex-shrink: 0; }
+.pd-review-body { font-size: .9rem; color: var(--color-text); margin: 0; line-height: 1.6; }
+
+/* Review submission form */
+.pd-review-form-wrap {
+  background: var(--color-bg-alt);
+  border: 1.5px solid var(--color-border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-top: 16px;
+}
+.pd-review-form-title {
+  font-size: .95rem; font-weight: 800; margin: 0 0 14px;
+  display: flex; align-items: center; gap: 7px;
+}
+.pd-review-form-title::before { content: '✏️'; font-size: 1rem; }
+
+/* Interactive star rating */
+.pd-star-rating {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.pd-star {
+  background: none; border: none; cursor: pointer;
+  font-size: 2rem; color: #d1d5db;
+  padding: 0; line-height: 1;
+  transition: color .12s, transform .1s;
+}
+.pd-star:hover,
+.pd-star.active { color: #f59e0b; transform: scale(1.15); }
+.pd-star-hint {
+  font-size: .8rem; color: var(--color-muted);
+  margin: 0 0 12px; min-height: 1.2em;
+}
+.pd-review-textarea {
+  width: 100%; box-sizing: border-box;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px; padding: 10px 12px;
+  font-size: .9rem; font-family: inherit;
+  resize: vertical; background: var(--color-bg);
+  color: var(--color-text); outline: none;
+  transition: border-color .18s;
+  margin-bottom: 12px; display: block;
+}
+.pd-review-textarea:focus { border-color: var(--color-primary); }
+.pd-review-submit {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  width: 100%; background: var(--color-primary); color: #fff;
+  border: none; border-radius: 10px; padding: 12px;
+  font-size: .92rem; font-weight: 700; cursor: pointer;
+  font-family: inherit; transition: background .18s, opacity .18s;
+}
+.pd-review-submit:hover:not(:disabled) { background: var(--color-primary-dark, #155e38); }
+.pd-review-submit:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Login prompt for reviews */
+.pd-review-login-prompt {
+  display: flex; align-items: center; gap: 10px;
+  border: 1.5px dashed var(--color-border); border-radius: 12px;
+  padding: 14px 16px; margin-top: 14px;
+  color: var(--color-muted); font-size: .9rem;
+}
+
+/* Safety Card */
+.pd-safety-card {
+  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+  border: 1.5px solid #86efac; border-radius: 16px;
+  padding: 18px 20px; margin-bottom: 24px;
+}
+.pd-safety-header {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 800; font-size: 1rem; color: #15803d; margin-bottom: 12px;
+}
+.pd-safety-header svg { stroke: #16a34a; flex-shrink: 0; }
+.pd-safety-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.pd-safety-list li { font-size: .88rem; color: #14532d; line-height: 1.5; }
+
+/* Report Modal */
+.pd-modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.55); z-index: 9999;
+  align-items: center; justify-content: center; padding: 16px;
+}
+.pd-modal-overlay.open { display: flex; }
+.pd-modal {
+  background: var(--color-bg); border-radius: 18px;
+  padding: 20px; width: 100%; max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+.pd-modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.pd-modal-header h3 { margin: 0; font-size: 1.05rem; }
+.pd-modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--color-muted); padding: 4px; }
+.pd-modal-sub { font-size: .88rem; color: var(--color-muted); margin: 0 0 14px; }
+.pd-report-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.pd-report-option { display: flex; align-items: center; gap: 10px; font-size: .9rem; cursor: pointer; }
+.pd-report-option input { accent-color: var(--color-primary); width: 16px; height: 16px; }
+.pd-btn-report-submit {
+  width: 100%; background: #dc2626; color: #fff; border: none;
+  border-radius: 10px; padding: 12px; font-size: .95rem; font-weight: 700; cursor: pointer;
+}
+.pd-btn-report-submit:hover { background: #b91c1c; }
+</style>
+
+<script>
+(function() {
+  var track = document.getElementById('pdTrack');
+  if (!track) return;
+  var dots = document.querySelectorAll('.pd-dot');
+  var thumbs = document.querySelectorAll('.pd-thumb');
+  var total = track.children.length;
+  var cur = 0;
+  var isRtl = document.documentElement.dir === 'rtl';
+
+  function go(idx) {
+    cur = (idx + total) % total;
+    track.style.transform = 'translateX(' + (isRtl ? cur * 100 : cur * -100) + '%)';
+    dots.forEach(function(d, i) { d.classList.toggle('active', i === cur); });
+    thumbs.forEach(function(t, i) { t.classList.toggle('active', i === cur); });
+  }
+  window.pdGo = function(dir) { go(cur + dir); };
+  window.pdGoTo = function(idx) { go(idx); };
+
+  // Touch swipe
+  var startX = 0;
+  track.parentElement.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; }, { passive: true });
+  track.parentElement.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 40) go(cur + (dx < 0 ? 1 : -1));
+  });
+})();
+
+function openReportModal() {
+  document.getElementById('reportModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeReportModal() {
+  document.getElementById('reportModal').classList.remove('open');
+  document.body.style.overflow = '';
+  document.getElementById('reportForm').style.display = '';
+  document.getElementById('reportSuccess').style.display = 'none';
+  document.querySelectorAll('input[name="reportReason"]').forEach(function(r) { r.checked = false; });
+}
+function submitReport() {
+  var chosen = document.querySelector('input[name="reportReason"]:checked');
+  if (!chosen) { alert('اختار سبب الإبلاغ أولاً'); return; }
+  fetch('/products/<%= product.id %>/report', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ reason: chosen.value, _csrf: '<%= csrfToken %>' })
+  }).then(function(r) {
+    document.getElementById('reportForm').style.display = 'none';
+    document.getElementById('reportSuccess').style.display = '';
+  }).catch(function() {
+    document.getElementById('reportForm').style.display = 'none';
+    document.getElementById('reportSuccess').style.display = '';
+  });
+}
+
+// ── Interactive Star Rating ──
+(function() {
+  var stars = document.querySelectorAll('.pd-star');
+  if (!stars.length) return;
+  var ratingInput = document.getElementById('ratingInput');
+  var hint = document.getElementById('starHint');
+  var submitBtn = document.getElementById('reviewSubmitBtn');
+  var selected = 0;
+  var labels = ['', 'ضعيف جداً', 'ضعيف', 'جيد', 'جيد جداً', 'ممتاز'];
+
+  function paint(val) {
+    stars.forEach(function(s) {
+      var v = parseInt(s.dataset.val, 10);
+      s.classList.toggle('active', v <= val);
+    });
+  }
+
+  stars.forEach(function(star) {
+    star.addEventListener('mouseenter', function() {
+      paint(parseInt(star.dataset.val, 10));
+      hint.textContent = labels[parseInt(star.dataset.val, 10)];
+    });
+    star.addEventListener('mouseleave', function() {
+      paint(selected);
+      hint.textContent = selected ? labels[selected] : 'اختر عدد النجوم';
+    });
+    star.addEventListener('click', function() {
+      selected = parseInt(star.dataset.val, 10);
+      ratingInput.value = selected;
+      paint(selected);
+      hint.textContent = labels[selected];
+      submitBtn.disabled = false;
+    });
+  });
+})();
+</script>
+
+<%- include('../partials/footer') %>

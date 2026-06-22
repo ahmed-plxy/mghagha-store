@@ -1,0 +1,96 @@
+<%- include('../../partials/header', { title: 'تفاصيل الطلب' }) %>
+<div class="container">
+
+  <div class="page-header-row" style="margin-bottom:16px;">
+    <div>
+      <a href="/vendor/orders" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+        الطلبات الواردة
+      </a>
+      <h1 style="margin:6px 0 0;font-size:1.3rem;">طلب #<%= order.order_number %></h1>
+    </div>
+    <span class="badge badge-<%= order.order_status === 'pending' ? 'warning' : order.order_status === 'cancelled' ? 'danger' : 'success' %>" style="font-size:1rem;padding:8px 16px;">
+      <%= orderStatusLabel(order.order_status) %>
+    </span>
+  </div>
+
+  <% if (order.order_status === 'pending') { %>
+  <div class="vendor-order-action-banner">
+    <div>
+      <p style="margin:0 0 4px;font-weight:700;font-size:1rem;">⏳ طلب جديد بانتظار موافقتك</p>
+      <p style="margin:0;color:var(--color-muted);font-size:0.88rem;">هل تريد قبول هذا الطلب أم رفضه؟</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <form action="/vendor/orders/<%= order.id %>/status" method="POST">
+        <input type="hidden" name="status" value="confirmed">
+        <button type="submit" class="btn btn-success" style="min-width:120px;">✅ قبول الطلب</button>
+      </form>
+      <form action="/vendor/orders/<%= order.id %>/status" method="POST">
+        <input type="hidden" name="status" value="cancelled">
+        <button type="submit" class="btn btn-danger" style="min-width:120px;">❌ رفض الطلب</button>
+      </form>
+    </div>
+  </div>
+  <% } %>
+
+  <div class="info-card" style="margin-bottom:16px;">
+    <h2 style="margin:0 0 12px;font-size:1rem;font-weight:700;">معلومات العميل</h2>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span style="color:var(--color-muted);font-size:0.88rem;min-width:110px;">📍 عنوان التوصيل:</span>
+        <span style="font-weight:600;"><%= order.customer_address %></span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span style="color:var(--color-muted);font-size:0.88rem;min-width:110px;">📞 رقم الهاتف:</span>
+        <a href="tel:<%= order.customer_phone %>" style="font-weight:600;color:var(--color-primary);"><%= order.customer_phone %></a>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span style="color:var(--color-muted);font-size:0.88rem;min-width:110px;">💳 طريقة الدفع:</span>
+        <span style="font-weight:600;">الدفع عند الاستلام</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-card" style="margin-bottom:16px;">
+    <h2 style="margin:0 0 12px;font-size:1rem;font-weight:700;">منتجات الطلب</h2>
+    <table class="data-table" style="margin-bottom:0;">
+      <thead><tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
+      <tbody>
+        <% items.forEach(function(item) { %>
+          <tr>
+            <td style="font-weight:600;"><%= item.product_name %></td>
+            <td><%= item.quantity %></td>
+            <td><%= item.unit_price.toFixed(2) %> ج.م</td>
+            <td style="font-weight:700;color:var(--color-primary-dark);"><%= item.subtotal.toFixed(2) %> ج.م</td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <div style="text-align:left;font-weight:800;font-size:1.1rem;margin-top:14px;padding-top:12px;border-top:1px solid var(--color-border);">
+      الإجمالي: <span style="color:var(--color-primary-dark);"><%= order.total_amount.toFixed(2) %> ج.م</span>
+    </div>
+  </div>
+
+  <% if (nextStatuses.length > 0 && order.order_status !== 'pending') { %>
+  <div class="info-card">
+    <h2 style="margin:0 0 12px;font-size:1rem;font-weight:700;">🔄 تحديث حالة الطلب</h2>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <% nextStatuses.forEach(function(s) { %>
+        <form action="/vendor/orders/<%= order.id %>/status" method="POST">
+          <input type="hidden" name="status" value="<%= s %>">
+          <button type="submit" class="btn btn-primary">
+            <%= s === 'preparing' ? '🔧' : s === 'out_for_delivery' ? '🚚' : s === 'delivered' ? '📦' : s === 'cancelled' ? '❌' : '' %>
+            <%= orderStatusLabel(s) %>
+          </button>
+        </form>
+      <% }) %>
+    </div>
+  </div>
+  <% } %>
+
+  <% if (nextStatuses.length === 0 && order.order_status !== 'pending') { %>
+    <p style="color:var(--color-muted);margin-top:8px;">لا يمكن تحديث حالة هذا الطلب بعد الآن.</p>
+  <% } %>
+
+</div>
+<%- include('../../partials/footer') %>

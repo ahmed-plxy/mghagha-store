@@ -1,0 +1,775 @@
+<%- include('../../partials/header', { title: t('app.name') }) %>
+
+<div class="container pf-container">
+  <div class="pf-header">
+    <a href="/vendor/products" class="back-link">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      العودة إلى منتجاتي
+    </a>
+    <h1 class="pf-title"><%= mode === 'create' ? 'إضافة منتج جديد' : 'تعديل المنتج' %></h1>
+  </div>
+
+  <% if (errors && errors.length > 0) { %>
+    <div class="pf-errors">
+      <% errors.forEach(function(err) { %><p>⚠ <%= err %></p><% }) %>
+    </div>
+  <% } %>
+
+  <form
+    action="<%= mode === 'create' ? '/vendor/products/new' : '/vendor/products/' + product.id + '/edit' %>"
+    method="POST"
+    enctype="multipart/form-data"
+    class="pf-form"
+    id="productForm"
+  >
+
+    <!-- ===== STEP 1: PRODUCT NAME ===== -->
+    <div class="pf-section">
+      <div class="pf-section-title">
+        <span class="pf-step">١</span>
+        <span>معلومات المنتج الأساسية</span>
+      </div>
+      <div class="form-group">
+        <label for="name">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          اسم المنتج أو الإعلان
+        </label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          value="<%= (old && old.name) || (product && product.name) || '' %>"
+          placeholder="مثال: موبايل سامسونج S23 للبيع"
+          required
+          class="pf-input"
+        >
+      </div>
+    </div>
+
+    <!-- ===== STEP 2: CATEGORY ===== -->
+    <div class="pf-section">
+      <div class="pf-section-title">
+        <span class="pf-step">٢</span>
+        <span>الفئة والتصنيف</span>
+      </div>
+
+      <input type="hidden" id="categoryId" name="categoryId" value="<%= (old && old.categoryId) || (product && product.category_id) || '' %>">
+
+      <!-- Main Category Grid -->
+      <div class="form-group">
+        <label>الفئة الرئيسية</label>
+        <div class="pf-cat-grid" id="mainCatGrid">
+          <% mainCategories.forEach(function(cat) { %>
+            <button type="button" class="pf-cat-chip" data-id="<%= cat.id %>" data-slug="<%= cat.slug %>">
+              <span class="pf-cat-icon"><%= ({
+                'vehicles':       '🚗',
+                'mobiles':        '📱',
+                'home-appliances':'❄️',
+                'furniture':      '🛋️',
+                'kitchen-tools':  '🍳',
+                'computers':      '💻',
+                'livestock':      '🐄',
+                'crops':          '🌾',
+                'real-estate':    '🏠',
+                'professions':    '🔧',
+                'clothing':       '👕',
+                'accessories':    '💎',
+                'marine-vehicles':'⛵',
+                'sports-fitness': '🏋️'
+              })[cat.slug] || '📦' %></span>
+              <span class="pf-cat-label"><%= cat.name %></span>
+            </button>
+          <% }) %>
+        </div>
+      </div>
+
+      <!-- Sub Category -->
+      <div class="form-group" id="subCatGroup" style="display:none;">
+        <label for="subCatSelect">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          الفئة الفرعية
+        </label>
+        <div class="pf-custom-select-wrap">
+          <select id="subCatSelect" class="pf-custom-select">
+            <option value="">— اختر الفئة الفرعية —</option>
+          </select>
+          <span class="pf-select-arrow">▾</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== STEP 3: DYNAMIC ATTRIBUTE FIELDS ===== -->
+    <div class="pf-section" id="attrSection" style="display:none;">
+      <div class="pf-section-title">
+        <span class="pf-step">٣</span>
+        <span>تفاصيل المنتج</span>
+      </div>
+      <div id="attrFields" class="pf-attr-grid"></div>
+    </div>
+
+    <!-- ===== STEP 4: DESCRIPTION ===== -->
+    <div class="pf-section">
+      <div class="pf-section-title">
+        <span class="pf-step" id="descStep">٤</span>
+        <span>الوصف والمواصفات</span>
+      </div>
+      <div class="form-group">
+        <label for="description">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          وصف إضافي / المواصفات
+        </label>
+        <textarea id="description" name="description" rows="4" class="pf-input" placeholder="اكتب أي تفاصيل إضافية أو مواصفات تريد إضافتها..."><%= (old && old.description) || (product && product.description) || '' %></textarea>
+      </div>
+    </div>
+
+    <!-- ===== STEP 5: PRICE & QUANTITY ===== -->
+    <div class="pf-section">
+      <div class="pf-section-title">
+        <span class="pf-step">٥</span>
+        <span>السعر والكمية ومصاريف الشحن</span>
+      </div>
+      <div class="pf-two-col">
+        <div class="form-group">
+          <label for="price">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            السعر (ج.م)
+          </label>
+          <input type="number" id="price" name="price" step="0.01" min="0"
+            value="<%= (old && old.price) || (product && product.price) || '' %>"
+            placeholder="0.00" required class="pf-input">
+        </div>
+        <div class="form-group">
+          <label for="quantity">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            الكمية المتوفرة
+          </label>
+          <input type="number" id="quantity" name="quantity" step="1" min="0"
+            value="<%= (old && old.quantity !== undefined) ? old.quantity : (product ? product.quantity : '') %>"
+            placeholder="1" required class="pf-input">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="shippingCost">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          مصاريف الشحن لهذا المنتج (ج.م)
+        </label>
+        <input type="number" id="shippingCost" name="shippingCost" step="0.01" min="0"
+          value="<%= (old && old.shippingCost !== undefined && old.shippingCost !== '') ? old.shippingCost : (product && product.shipping_cost !== undefined && product.shipping_cost !== null ? product.shipping_cost : '') %>"
+          placeholder="0.00" required class="pf-input" style="max-width:200px;">
+        <p style="margin:6px 0 0;color:var(--color-muted);font-size:0.85rem;">كل منتج له مصاريف شحن مستقلة. اكتب <strong>0</strong> لو الشحن مجاني لهذا المنتج.</p>
+      </div>
+    </div>
+
+    <!-- ===== STEP 6: IMAGES ===== -->
+    <div class="pf-section">
+      <div class="pf-section-title">
+        <span class="pf-step">٦</span>
+        <span>الصور</span>
+      </div>
+      <% if (images && images.length > 0) { %>
+        <div class="form-group">
+          <label>الصور الحالية</label>
+          <div class="image-thumbs">
+            <% images.forEach(function(img) { %>
+              <img src="/uploads/<%= img.image_url %>" alt="صورة المنتج" class="thumb">
+            <% }) %>
+          </div>
+        </div>
+      <% } %>
+      <div class="form-group">
+        <label for="images">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          إضافة صور المنتج
+        </label>
+        <div class="pf-file-wrap">
+          <label for="images" class="pf-file-label">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+            اختر الصور أو اسحبها هنا
+          </label>
+          <input type="file" id="images" name="images" accept="image/jpeg,image/png,image/webp" multiple class="pf-file-input">
+          <p class="pf-file-hint">يمكن اختيار أكثر من صورة — JPEG, PNG, WebP</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="pf-submit-row">
+      <button type="submit" class="btn btn-primary pf-submit">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <%= mode === 'create' ? 'نشر المنتج' : 'حفظ التعديلات' %>
+      </button>
+      <a href="/vendor/products" class="btn btn-secondary">إلغاء</a>
+    </div>
+  </form>
+</div>
+
+<script>
+(function () {
+  const SUBS_MAP = <%- subsMap %>;
+
+  // ─── Attribute field definitions per subcategory slug ───────────────────────
+  const COND_OPTS = ['جديد', 'مستعمل بحالة ممتازة', 'مستعمل بحالة جيدة', 'مستعمل'];
+  const COND_SIMPLE = ['جديد', 'مستعمل'];
+  const GENDER_OPTS = ['ذكر', 'أنثى'];
+
+  const ATTR_CONFIG = {
+    'vehicles-for-sale': [
+      { name:'brand',     label:'الماركة / الشركة',       icon:'🏭', type:'text' },
+      { name:'model',     label:'الموديل',                 icon:'🔖', type:'text' },
+      { name:'year',      label:'سنة الصنع',               icon:'📅', type:'number', min:1960, max:2025 },
+      { name:'condition', label:'الحالة',                  icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'mileage',   label:'عداد الكيلومترات',        icon:'🛣️', type:'number', min:0 },
+      { name:'color',     label:'اللون',                   icon:'🎨', type:'text' },
+    ],
+    'spare-parts': [
+      { name:'compatible_with', label:'مناسب لسيارة / موديل', icon:'🔗', type:'text' },
+      { name:'condition',       label:'الحالة',               icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'motorcycles': [
+      { name:'brand',     label:'الماركة',   icon:'🏭', type:'text' },
+      { name:'model',     label:'الموديل',   icon:'🔖', type:'text' },
+      { name:'year',      label:'سنة الصنع', icon:'📅', type:'number', min:1960, max:2025 },
+      { name:'condition', label:'الحالة',    icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'color',     label:'اللون',     icon:'🎨', type:'text' },
+    ],
+    'vehicle-accessories': [
+      { name:'condition', label:'الحالة', icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'mobile-phones': [
+      { name:'brand',     label:'الماركة',          icon:'🏭', type:'text' },
+      { name:'model',     label:'الموديل',           icon:'🔖', type:'text' },
+      { name:'storage',   label:'السعة التخزينية',   icon:'💾', type:'text', placeholder:'مثال: 128GB' },
+      { name:'ram',       label:'الرام',             icon:'⚡', type:'text', placeholder:'مثال: 8GB' },
+      { name:'condition', label:'الحالة',            icon:'✅', type:'select', options: COND_OPTS },
+      { name:'color',     label:'اللون',             icon:'🎨', type:'text' },
+    ],
+    'tablets': [
+      { name:'brand',     label:'الماركة',        icon:'🏭', type:'text' },
+      { name:'model',     label:'الموديل',         icon:'🔖', type:'text' },
+      { name:'storage',   label:'السعة التخزينية', icon:'💾', type:'text', placeholder:'مثال: 64GB' },
+      { name:'condition', label:'الحالة',          icon:'✅', type:'select', options: COND_OPTS },
+    ],
+    'earphones': [
+      { name:'brand',     label:'الماركة', icon:'🏭', type:'text' },
+      { name:'condition', label:'الحالة',  icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'wireless-headphones': [
+      { name:'brand',     label:'الماركة',          icon:'🏭', type:'text' },
+      { name:'condition', label:'الحالة',           icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'battery',   label:'عمر البطارية',     icon:'🔋', type:'text', placeholder:'مثال: 30 ساعة' },
+    ],
+    // Home appliances – specific per-type config
+    'refrigerators': [
+      { name:'brand',     label:'الماركة',     icon:'🏭', type:'text' },
+      { name:'size',      label:'السعة (لتر)', icon:'📦', type:'number', min:50 },
+      { name:'doors',     label:'عدد الأبواب', icon:'🚪', type:'select', options:['بابين','باب واحد','3 أبواب','فرنشي'] },
+      { name:'condition', label:'الحالة',      icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'warranty',  label:'الضمان',      icon:'🛡️', type:'text', placeholder:'مثال: سنة' },
+    ],
+    'deep-freezers': [
+      { name:'brand',     label:'الماركة',     icon:'🏭', type:'text' },
+      { name:'size',      label:'السعة (لتر)', icon:'📦', type:'number', min:50 },
+      { name:'type',      label:'النوع',       icon:'❄️', type:'select', options:['أفقي (صندوق)','عمودي'] },
+      { name:'condition', label:'الحالة',      icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'warranty',  label:'الضمان',      icon:'🛡️', type:'text', placeholder:'مثال: سنة' },
+    ],
+    'water-filters': [
+      { name:'brand',       label:'الماركة',     icon:'🏭', type:'text' },
+      { name:'filter_type', label:'نوع الفلتر',  icon:'💧', type:'select', options:['رو / RO','كربون','ألترا فيوليت','فلتر بيتي'] },
+      { name:'stages',      label:'عدد المراحل', icon:'🔢', type:'number', min:3, max:12 },
+      { name:'condition',   label:'الحالة',      icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'air-conditioners': [
+      { name:'brand',     label:'الماركة',      icon:'🏭', type:'text' },
+      { name:'power_hp',  label:'القوة (حصان)', icon:'⚡', type:'select', options:['1 حصان','1.5 حصان','2 حصان','2.5 حصان','3 حصان','4 حصان','5 حصان'] },
+      { name:'type',      label:'النوع',        icon:'🌀', type:'select', options:['سبليت','كاسيت','شباك','مركزي'] },
+      { name:'condition', label:'الحالة',       icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'warranty',  label:'الضمان',       icon:'🛡️', type:'text', placeholder:'مثال: سنتان' },
+    ],
+    'fans': [
+      { name:'brand',     label:'الماركة',     icon:'🏭', type:'text' },
+      { name:'fan_type',  label:'نوع المروحة', icon:'🌀', type:'select', options:['أرضي','سقفي','مكيف تبخيري','شفاط','مراوح متعددة'] },
+      { name:'condition', label:'الحالة',      icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'water-heaters': [
+      { name:'brand',       label:'الماركة',     icon:'🏭', type:'text' },
+      { name:'size',        label:'السعة (لتر)', icon:'📦', type:'number', min:10 },
+      { name:'heater_type', label:'نوع السخان',  icon:'🔥', type:'select', options:['كهرباء','غاز','طاقة شمسية'] },
+      { name:'condition',   label:'الحالة',      icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'room-heaters': [
+      { name:'brand',       label:'الماركة',     icon:'🏭', type:'text' },
+      { name:'heater_type', label:'نوع الدفاية', icon:'🔥', type:'select', options:['كهربائية','غاز','كيروسين','حطب / فحم'] },
+      { name:'condition',   label:'الحالة',      icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'kettles': [
+      { name:'brand',     label:'الماركة', icon:'🏭', type:'text' },
+      { name:'material',  label:'الخامة',  icon:'🪵', type:'select', options:['ستانلس','زجاج','بلاستيك'] },
+      { name:'size',      label:'السعة',   icon:'📦', type:'text', placeholder:'مثال: 1.7 لتر' },
+      { name:'condition', label:'الحالة',  icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'screens-tvs': [
+      { name:'brand',     label:'الماركة',    icon:'🏭', type:'text' },
+      { name:'size',      label:'المقاس',     icon:'📐', type:'text', placeholder:'مثال: 55 بوصة' },
+      { name:'type',      label:'نوع الشاشة', icon:'📺', type:'select', options:['LED','OLED','QLED','سمارت','عادي'] },
+      { name:'condition', label:'الحالة',     icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'warranty',  label:'الضمان',     icon:'🛡️', type:'text', placeholder:'مثال: سنة' },
+    ],
+    // Furniture – specific per-type
+    'beds': [
+      { name:'size',      label:'مقاس السرير', icon:'📐', type:'select', options:['مفرد','مزدوج / كوين','كينج','سوبر كينج'] },
+      { name:'material',  label:'الخامة',      icon:'🪵', type:'select', options:['خشب طبيعي','MDF','معدن'] },
+      { name:'condition', label:'الحالة',      icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'color',     label:'اللون',       icon:'🎨', type:'text' },
+    ],
+    'bedrooms': [
+      { name:'pieces',    label:'عدد القطع',   icon:'🔢', type:'select', options:['4 قطع','5 قطع','6 قطع','7 قطع'] },
+      { name:'material',  label:'الخامة',      icon:'🪵', type:'select', options:['خشب زان','MDF','خشب طبيعي'] },
+      { name:'condition', label:'الحالة',      icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'color',     label:'اللون',       icon:'🎨', type:'text' },
+    ],
+    'sofas': [
+      { name:'seats',     label:'عدد المقاعد', icon:'🪑', type:'select', options:['مفرد','ثنائي','ثلاثي','شكل L','طقم كامل'] },
+      { name:'material',  label:'قماش التنجيد',icon:'🧵', type:'select', options:['قماش','جلد طبيعي','جلد صناعي'] },
+      { name:'condition', label:'الحالة',      icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'color',     label:'اللون',       icon:'🎨', type:'text' },
+    ],
+    'kitchen-furniture': [
+      { name:'material',  label:'الخامة',  icon:'🪵', type:'select', options:['خشب','ألومنيوم','MDF','بولي لاك'] },
+      { name:'condition', label:'الحالة',  icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'color',     label:'اللون',   icon:'🎨', type:'text' },
+    ],
+    'chairs': [
+      { name:'material',  label:'الخامة',  icon:'🪵', type:'select', options:['خشب','معدن','بلاستيك','جلد'] },
+      { name:'condition', label:'الحالة',  icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'desks': [
+      { name:'size',      label:'المقاس',  icon:'📐', type:'text', placeholder:'مثال: 120×60 سم' },
+      { name:'material',  label:'الخامة',  icon:'🪵', type:'select', options:['خشب','MDF','زجاج','معدن'] },
+      { name:'condition', label:'الحالة',  icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    // Kitchen tools – specific per-type
+    'pots': [
+      { name:'material',  label:'الخامة',    icon:'🪵', type:'select', options:['ستانلس','ألومنيوم','جرانيت','سيراميك','نحاس'] },
+      { name:'size',      label:'السعة',     icon:'📦', type:'text', placeholder:'مثال: 5 لتر' },
+      { name:'condition', label:'الحالة',    icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'bowls': [
+      { name:'material',  label:'الخامة',    icon:'🪵', type:'select', options:['ستانلس','زجاج','بلاستيك','سيراميك'] },
+      { name:'size',      label:'الحجم',     icon:'📦', type:'text', placeholder:'مثال: كبير / متوسط / صغير' },
+      { name:'condition', label:'الحالة',    icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'plates': [
+      { name:'material',  label:'الخامة',    icon:'🪵', type:'select', options:['بورسيلان','سيراميك','زجاج','ستانلس'] },
+      { name:'pieces',    label:'عدد القطع', icon:'🔢', type:'number', min:1 },
+      { name:'condition', label:'الحالة',    icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'spoons': [
+      { name:'material',  label:'الخامة',    icon:'🪵', type:'select', options:['ستانلس','فضة','بلاستيك'] },
+      { name:'pieces',    label:'عدد القطع', icon:'🔢', type:'number', min:1 },
+      { name:'condition', label:'الحالة',    icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'forks': [
+      { name:'material',  label:'الخامة',    icon:'🪵', type:'select', options:['ستانلس','فضة'] },
+      { name:'pieces',    label:'عدد القطع', icon:'🔢', type:'number', min:1 },
+      { name:'condition', label:'الحالة',    icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'knives': [
+      { name:'material',  label:'خامة الشفرة', icon:'⚔️', type:'select', options:['ستانلس','فولاذ','سيراميك'] },
+      { name:'pieces',    label:'عدد القطع',   icon:'🔢', type:'number', min:1 },
+      { name:'condition', label:'الحالة',      icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'ladles': [
+      { name:'material',  label:'الخامة', icon:'🪵', type:'select', options:['ستانلس','سيليكون','خشب'] },
+      { name:'condition', label:'الحالة', icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'wooden-spoons': [
+      { name:'material',  label:'الخامة', icon:'🪵', type:'select', options:['خشب طبيعي','بامبو','سيليكون'] },
+      { name:'condition', label:'الحالة', icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    // Computers
+    'desktop-computers': _computer(),
+    'laptops': _computer(),
+    'computer-accessories': [
+      { name:'compatible_with', label:'متوافق مع',  icon:'🔗', type:'text' },
+      { name:'condition',       label:'الحالة',      icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'printers': [
+      { name:'brand',     label:'الماركة', icon:'🏭', type:'text' },
+      { name:'condition', label:'الحالة',  icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    // Livestock – specific breeds per type
+    'cows': [
+      { name:'breed',  label:'السلالة',          icon:'🐄', type:'select', options:['بلدي','فريزيان','هولشتاين','براهمان','بوفالو'] },
+      { name:'age',    label:'العمر',            icon:'🎂', type:'text', placeholder:'مثال: سنتان' },
+      { name:'gender', label:'الجنس',            icon:'⚥',  type:'select', options: GENDER_OPTS },
+      { name:'weight', label:'الوزن التقريبي',   icon:'⚖️', type:'text', placeholder:'مثال: 300 كجم' },
+    ],
+    'camels': [
+      { name:'age',    label:'العمر',            icon:'🎂', type:'text', placeholder:'مثال: 3 سنوات' },
+      { name:'gender', label:'الجنس',            icon:'⚥',  type:'select', options: GENDER_OPTS },
+      { name:'weight', label:'الوزن التقريبي',   icon:'⚖️', type:'text', placeholder:'مثال: 400 كجم' },
+    ],
+    'goats': [
+      { name:'breed',  label:'السلالة',          icon:'🐐', type:'select', options:['بلدي','نوبي','برعمي','ماعز جبلي'] },
+      { name:'age',    label:'العمر',            icon:'🎂', type:'text', placeholder:'مثال: 8 أشهر' },
+      { name:'gender', label:'الجنس',            icon:'⚥',  type:'select', options: GENDER_OPTS },
+      { name:'weight', label:'الوزن التقريبي',   icon:'⚖️', type:'text', placeholder:'مثال: 30 كجم' },
+    ],
+    'sheep': [
+      { name:'breed',  label:'السلالة',          icon:'🐑', type:'select', options:['بلدي','رومي','عواسي','دم أحمر'] },
+      { name:'age',    label:'العمر',            icon:'🎂', type:'text', placeholder:'مثال: سنة' },
+      { name:'gender', label:'الجنس',            icon:'⚥',  type:'select', options: GENDER_OPTS },
+      { name:'weight', label:'الوزن التقريبي',   icon:'⚖️', type:'text', placeholder:'مثال: 50 كجم' },
+    ],
+    'horses': [
+      { name:'breed',  label:'السلالة',  icon:'🐎', type:'select', options:['عربي أصيل','برجي','هجين'] },
+      { name:'age',    label:'العمر',    icon:'🎂', type:'text', placeholder:'مثال: 4 سنوات' },
+      { name:'gender', label:'الجنس',   icon:'⚥',  type:'select', options: GENDER_OPTS },
+    ],
+    'donkeys': [
+      { name:'age',    label:'العمر',   icon:'🎂', type:'text', placeholder:'مثال: 3 سنوات' },
+      { name:'gender', label:'الجنس',   icon:'⚥',  type:'select', options: GENDER_OPTS },
+      { name:'weight', label:'الوزن',   icon:'⚖️', type:'text', placeholder:'مثال: 100 كجم' },
+    ],
+    // Pets – specific per type
+    'cats': [
+      { name:'breed',  label:'السلالة',   icon:'🐱', type:'text', placeholder:'مثال: شيرازي – بيرسي – بلدي' },
+      { name:'age',    label:'العمر',     icon:'🎂', type:'text', placeholder:'مثال: 6 أشهر' },
+      { name:'gender', label:'الجنس',     icon:'⚥',  type:'select', options: GENDER_OPTS },
+    ],
+    'dogs': [
+      { name:'breed',  label:'السلالة',   icon:'🐕', type:'text', placeholder:'مثال: هاسكي – لابرادور – بلدي' },
+      { name:'age',    label:'العمر',     icon:'🎂', type:'text', placeholder:'مثال: سنة' },
+      { name:'gender', label:'الجنس',     icon:'⚥',  type:'select', options: GENDER_OPTS },
+    ],
+    'turtles': [
+      { name:'species', label:'النوع',   icon:'🐢', type:'text', placeholder:'مثال: سلحفاة برية – مائية' },
+      { name:'age',     label:'العمر',   icon:'🎂', type:'text', placeholder:'مثال: سنة' },
+    ],
+    'ornamental-fish': [
+      { name:'species',  label:'النوع / الفصيلة', icon:'🐟', type:'text', placeholder:'مثال: سمك ذهبي – أوسكار' },
+      { name:'quantity', label:'الكمية (سمكة)',    icon:'🔢', type:'number', min:1 },
+    ],
+    // Crops – specific per type
+    'vegetables': [
+      { name:'variety',  label:'الصنف',      icon:'🌿', type:'text', placeholder:'مثال: طماطم بلدي – خيار شرقي – فلفل' },
+      { name:'unit',     label:'وحدة البيع', icon:'📦', type:'select', options:['كيلو','طن','قنطار','كرتونة','وش'] },
+      { name:'season',   label:'الموسم',     icon:'🌱', type:'text', placeholder:'مثال: صيفي – شتوي' },
+    ],
+    'fruits': [
+      { name:'variety',  label:'الصنف',      icon:'🍎', type:'text', placeholder:'مثال: مانجو فاخر – برتقال بلدي – عنب' },
+      { name:'unit',     label:'وحدة البيع', icon:'📦', type:'select', options:['كيلو','طن','قنطار','كرتونة','شكارة'] },
+      { name:'season',   label:'الموسم',     icon:'🌱', type:'text', placeholder:'مثال: صيفي' },
+    ],
+    // Real estate for sale
+    'apartments-for-sale': _realEstateSale(),
+    'houses-for-sale':     _realEstateSale(),
+    'apartments-for-rent': _realEstateRent(),
+    'houses-for-rent':     _realEstateRent(),
+    // Land
+    'agricultural-land':  _land(),
+    'residential-land':   _land(),
+    'commercial-land':    _land(),
+    'industrial-land':    _land(),
+    // Professions
+    'electricians':     _profession(),
+    'plumbers':         _profession(),
+    'carpenters':       _profession(),
+    'ac-technicians':   _profession(),
+    'car-mechanics':    _profession(),
+    // Clothing & Fashion
+    'mens-clothing':        _clothing(),
+    'womens-clothing':      _clothing(),
+    'kids-clothing':        _clothing(),
+    'sportswear':           _clothing(),
+    'traditional-clothing': _clothing(),
+    'occasion-clothing':    _clothing(),
+    // Accessories
+    'perfumes': [
+      { name:'brand',      label:'الماركة',   icon:'🏭', type:'text' },
+      { name:'scent_type', label:'نوع العطر', icon:'💫', type:'select', options:['رجالي','نسائي','يونيسكس','بخور'] },
+      { name:'condition',  label:'الحالة',    icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'watches': [
+      { name:'brand',      label:'الماركة',    icon:'🏭', type:'text' },
+      { name:'watch_type', label:'نوع الساعة', icon:'⌚', type:'select', options:['رقمية','تناظرية','سمارت ووتش'] },
+      { name:'condition',  label:'الحالة',     icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'eyewear': [
+      { name:'brand',     label:'الماركة', icon:'🏭', type:'text' },
+      { name:'condition', label:'الحالة',  icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'bags': [
+      { name:'brand',     label:'الماركة',     icon:'🏭', type:'text' },
+      { name:'bag_type',  label:'نوع الحقيبة', icon:'👜', type:'select', options:['حقيبة يد','شنطة ظهر','محفظة','شنطة سفر','حقيبة لابتوب'] },
+      { name:'condition', label:'الحالة',      icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'shoes': [
+      { name:'brand',     label:'الماركة', icon:'🏭', type:'text' },
+      { name:'shoe_size', label:'المقاس',  icon:'📏', type:'text', placeholder:'مثال: 42 – 43' },
+      { name:'condition', label:'الحالة',  icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'color',     label:'اللون',   icon:'🎨', type:'text' },
+    ],
+    'jewelry': [
+      { name:'metal_type', label:'نوع المعدن', icon:'💍', type:'select', options:['ذهب','فضة','بلاتين','ستانلس','أحجار كريمة','خليط'] },
+      { name:'condition',  label:'الحالة',    icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    // Marine Vehicles
+    'fishing-boats':  _boat(),
+    'pleasure-boats': _boat(),
+    'sailboats':      _boat(),
+    'marine-engines': [
+      { name:'brand',     label:'الماركة',     icon:'🏭', type:'text' },
+      { name:'year',      label:'سنة الصنع',    icon:'📅', type:'number', min:1980, max:2025 },
+      { name:'power_hp',  label:'القوة (حصان)', icon:'⚡', type:'number', min:1 },
+      { name:'condition', label:'الحالة',       icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'diving-equipment': [
+      { name:'brand',     label:'الماركة', icon:'🏭', type:'text' },
+      { name:'condition', label:'الحالة',  icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    // Sports & Fitness
+    'fitness-equipment': [
+      { name:'brand',      label:'الماركة',              icon:'🏭', type:'text' },
+      { name:'sport_type', label:'نوع الجهاز / الرياضة', icon:'🏅', type:'text', placeholder:'مثال: مشاية – دراجة ثابتة' },
+      { name:'condition',  label:'الحالة',               icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'bicycles': [
+      { name:'brand',      label:'الماركة',    icon:'🏭', type:'text' },
+      { name:'bike_type',  label:'نوع الدراجة', icon:'🚲', type:'select', options:['دراجة عادية','دراجة جبلية','دراجة سباق','دراجة كهربائية','دراجة أطفال'] },
+      { name:'frame_size', label:'حجم الهيكل', icon:'📐', type:'text', placeholder:'مثال: 26 بوصة' },
+      { name:'condition',  label:'الحالة',     icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'fishing-gear': [
+      { name:'sport_type', label:'نوع المعدة', icon:'🎣', type:'text', placeholder:'مثال: صنارة – شبكة' },
+      { name:'condition',  label:'الحالة',     icon:'✅', type:'select', options: COND_SIMPLE },
+    ],
+    'sports-gear':   _sportGear(),
+    'athletic-wear': _clothing(),
+  };
+
+  function _homeAppliance() {
+    return [
+      { name:'brand',     label:'الماركة',  icon:'🏭', type:'text' },
+      { name:'condition', label:'الحالة',   icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'warranty',  label:'الضمان',   icon:'🛡️', type:'text', placeholder:'مثال: سنة أو بدون' },
+    ];
+  }
+  function _furniture() {
+    return [
+      { name:'condition', label:'الحالة',   icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'material',  label:'الخامة',   icon:'🪵', type:'text', placeholder:'مثال: خشب – معدن' },
+      { name:'color',     label:'اللون',    icon:'🎨', type:'text' },
+    ];
+  }
+  function _kitchenTool() {
+    return [
+      { name:'condition', label:'الحالة',  icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'material',  label:'الخامة',  icon:'🪵', type:'text', placeholder:'مثال: ستانلس – ألومنيوم' },
+    ];
+  }
+  function _computer() {
+    return [
+      { name:'brand',     label:'الماركة',  icon:'🏭', type:'text' },
+      { name:'processor', label:'المعالج',  icon:'⚙️', type:'text', placeholder:'مثال: Core i7' },
+      { name:'ram',       label:'الرام',    icon:'⚡', type:'text', placeholder:'مثال: 16GB' },
+      { name:'storage',   label:'التخزين',  icon:'💾', type:'text', placeholder:'مثال: 512GB SSD' },
+      { name:'condition', label:'الحالة',   icon:'✅', type:'select', options: COND_OPTS },
+    ];
+  }
+  function _livestock() {
+    return [
+      { name:'age',    label:'العمر',           icon:'🎂', type:'text', placeholder:'مثال: سنتان' },
+      { name:'gender', label:'الجنس',           icon:'⚥',  type:'select', options: GENDER_OPTS },
+      { name:'weight', label:'الوزن التقريبي',  icon:'⚖️', type:'text', placeholder:'مثال: 200 كجم' },
+    ];
+  }
+  function _pet() {
+    return [
+      { name:'breed',  label:'السلالة / الفصيلة', icon:'🐾', type:'text' },
+      { name:'age',    label:'العمر',              icon:'🎂', type:'text', placeholder:'مثال: 6 أشهر' },
+      { name:'gender', label:'الجنس',              icon:'⚥',  type:'select', options: GENDER_OPTS },
+    ];
+  }
+  function _crop() {
+    return [
+      { name:'unit',   label:'وحدة البيع', icon:'📦', type:'select', options:['كيلو','طن','قنطار','كرتونة','قطعة','حبة'] },
+      { name:'season', label:'الموسم',     icon:'🌱', type:'text', placeholder:'مثال: صيفي' },
+    ];
+  }
+  function _realEstateSale() {
+    return [
+      { name:'area_sqm',  label:'المساحة (متر مربع)',  icon:'📐', type:'number', min:1 },
+      { name:'floor',     label:'الدور',               icon:'🏢', type:'text', placeholder:'مثال: الثالث' },
+      { name:'rooms',     label:'عدد الغرف',            icon:'🛏️', type:'number', min:1 },
+      { name:'bathrooms', label:'عدد الحمامات',         icon:'🚿', type:'number', min:1 },
+      { name:'finishing', label:'التشطيب',              icon:'🏗️', type:'select', options:['سوبر لوكس','لوكس','عادي','بدون تشطيب'] },
+    ];
+  }
+  function _realEstateRent() {
+    return [
+      { name:'area_sqm',       label:'المساحة (متر مربع)', icon:'📐', type:'number', min:1 },
+      { name:'floor',          label:'الدور',              icon:'🏢', type:'text', placeholder:'مثال: الثالث' },
+      { name:'rooms',          label:'عدد الغرف',           icon:'🛏️', type:'number', min:1 },
+      { name:'bathrooms',      label:'عدد الحمامات',        icon:'🚿', type:'number', min:1 },
+      { name:'furnished',      label:'التأثيث',             icon:'🪑', type:'select', options:['مفروشة','غير مفروشة'] },
+      { name:'payment_period', label:'فترة الدفع',          icon:'📅', type:'select', options:['شهري','ربع سنوي','نصف سنوي','سنوي'] },
+    ];
+  }
+  function _land() {
+    return [
+      { name:'area_sqm', label:'المساحة (متر مربع)', icon:'📐', type:'number', min:1 },
+    ];
+  }
+  function _profession() {
+    return [
+      { name:'experience',   label:'سنوات الخبرة', icon:'⭐', type:'text', placeholder:'مثال: 5 سنوات' },
+      { name:'availability', label:'أوقات العمل',  icon:'🕐', type:'text', placeholder:'مثال: يومياً 8ص – 5م' },
+      { name:'service_area', label:'منطقة الخدمة', icon:'📍', type:'text', placeholder:'مثال: مغاغة وضواحيها' },
+    ];
+  }
+  function _clothing() {
+    return [
+      { name:'clothing_size', label:'المقاس',  icon:'📏', type:'text', placeholder:'مثال: M – L – XL – 38' },
+      { name:'condition',     label:'الحالة',  icon:'✅', type:'select', options: COND_SIMPLE },
+      { name:'fabric',        label:'القماش', icon:'🧵', type:'text', placeholder:'مثال: قطن – كتان – بوليستر' },
+      { name:'color',         label:'اللون',   icon:'🎨', type:'text' },
+    ];
+  }
+  function _boat() {
+    return [
+      { name:'brand',      label:'الماركة',        icon:'🏭', type:'text' },
+      { name:'year',       label:'سنة الصنع',       icon:'📅', type:'number', min:1970, max:2025 },
+      { name:'length',     label:'الطول (متر)',     icon:'📐', type:'number', min:1 },
+      { name:'motor_type', label:'نوع المحرك',      icon:'⚙️', type:'select', options:['بنزين','ديزل','كهرباء','بدون محرك / شراع'] },
+      { name:'condition',  label:'الحالة',          icon:'✅', type:'select', options: COND_SIMPLE },
+    ];
+  }
+  function _sportGear() {
+    return [
+      { name:'sport_type', label:'نوع الرياضة', icon:'🏅', type:'text', placeholder:'مثال: كرة قدم – تنس – سباحة' },
+      { name:'condition',  label:'الحالة',      icon:'✅', type:'select', options: COND_SIMPLE },
+    ];
+  }
+
+  // ─── Saved values for edit mode ─────────────────────────────────────────────
+  const savedAttrs    = <%- JSON.stringify(locals.productAttrs || {}) %>;
+  const savedCatId    = parseInt('<%= (old && old.categoryId) || (product && product.category_id) || "" %>') || null;
+  const savedMainId   = findMainForSub(savedCatId);
+
+  // ─── DOM refs ───────────────────────────────────────────────────────────────
+  const mainGrid      = document.getElementById('mainCatGrid');
+  const subGroup      = document.getElementById('subCatGroup');
+  const subSelect     = document.getElementById('subCatSelect');
+  const attrSection   = document.getElementById('attrSection');
+  const attrFields    = document.getElementById('attrFields');
+  const hiddenCatId   = document.getElementById('categoryId');
+
+  // ─── Helpers ────────────────────────────────────────────────────────────────
+  function findMainForSub(subId) {
+    if (!subId) return null;
+    for (const [mainId, subs] of Object.entries(SUBS_MAP)) {
+      if (subs.some(s => s.id === subId)) return parseInt(mainId);
+    }
+    return null;
+  }
+
+  function selectMain(mainId, mainSlug) {
+    document.querySelectorAll('.pf-cat-chip').forEach(el => el.classList.remove('active'));
+    const chip = mainGrid.querySelector(`[data-id="${mainId}"]`);
+    if (chip) chip.classList.add('active');
+
+    const subs = SUBS_MAP[mainId] || [];
+    subSelect.innerHTML = '<option value="">— اختر الفئة الفرعية —</option>';
+    subs.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.name;
+      subSelect.appendChild(opt);
+    });
+    subGroup.style.display = subs.length ? 'block' : 'none';
+    if (window.csdRefresh) window.csdRefresh(subSelect);
+
+    clearAttrFields();
+  }
+
+  function selectSub(subId) {
+    hiddenCatId.value = subId || '';
+    if (!subId) { clearAttrFields(); return; }
+    const slug = Array.from(subSelect.options).find(o => o.value == subId)?.dataset?.slug;
+    const subSlug = (function() {
+      for (const [, subs] of Object.entries(SUBS_MAP)) {
+        const found = subs.find(s => s.id == subId);
+        if (found) return found.slug;
+      }
+      return null;
+    })();
+    renderAttrFields(subSlug);
+  }
+
+  function clearAttrFields() {
+    attrSection.style.display = 'none';
+    attrFields.innerHTML = '';
+  }
+
+  function renderAttrFields(subSlug) {
+    const config = ATTR_CONFIG[subSlug];
+    if (!config || config.length === 0) { clearAttrFields(); return; }
+
+    attrFields.innerHTML = '';
+    config.forEach(function(field) {
+      const saved = savedAttrs[field.name] || '';
+      const div = document.createElement('div');
+      div.className = 'pf-attr-field';
+
+      let inputHtml = '';
+      if (field.type === 'select') {
+        const opts = field.options.map(o =>
+          `<option value="${o}" ${saved === o ? 'selected' : ''}>${o}</option>`
+        ).join('');
+        inputHtml = `<select name="attr_${field.name}" class="pf-input" data-csd><option value="">— اختر —</option>${opts}</select>`;
+      } else {
+        const extra = field.min !== undefined ? `min="${field.min}"` : '';
+        const extra2 = field.max !== undefined ? `max="${field.max}"` : '';
+        const ph = field.placeholder ? `placeholder="${field.placeholder}"` : '';
+        inputHtml = `<input type="${field.type}" name="attr_${field.name}" value="${saved}" class="pf-input" ${extra} ${extra2} ${ph}>`;
+      }
+
+      div.innerHTML = `
+        <label>
+          <span class="pf-attr-icon">${field.icon}</span>
+          ${field.label}
+        </label>
+        ${inputHtml}
+      `;
+      attrFields.appendChild(div);
+    });
+
+    attrSection.style.display = 'block';
+  }
+
+  // ─── Event listeners ────────────────────────────────────────────────────────
+  mainGrid.addEventListener('click', function(e) {
+    const chip = e.target.closest('.pf-cat-chip');
+    if (!chip) return;
+    selectMain(parseInt(chip.dataset.id), chip.dataset.slug);
+    hiddenCatId.value = '';
+    clearAttrFields();
+  });
+
+  subSelect.addEventListener('change', function() {
+    selectSub(this.value);
+  });
+
+  // ─── Restore saved state (edit mode) ────────────────────────────────────────
+  if (savedMainId) {
+    selectMain(savedMainId, '');
+    if (savedCatId) {
+      subSelect.value = savedCatId;
+      selectSub(savedCatId);
+    }
+  }
+})();
+</script>
+
+<%- include('../../partials/footer') %>

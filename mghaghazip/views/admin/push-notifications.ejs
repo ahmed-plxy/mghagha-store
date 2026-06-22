@@ -1,0 +1,70 @@
+<%- include('../partials/header', { title: 'إشعارات الموبايل' }) %>
+<div class="container">
+  <div class="page-header-row" style="margin-bottom:22px;">
+    <div>
+      <h1 style="margin:0 0 4px;font-size:1.5rem;">🔔 إشعارات الموبايل</h1>
+      <p style="margin:0;color:var(--color-muted);font-size:0.88rem;">إرسال إشعارات فورية لجميع مستخدمي التطبيق عبر OneSignal</p>
+    </div>
+    <a href="/admin/dashboard" class="btn btn-outline" style="align-self:flex-start;">← لوحة التحكم</a>
+  </div>
+
+  <%- include('../partials/flash') %>
+
+  <!-- Send Form -->
+  <div class="pf-section" style="margin-bottom:28px;">
+    <div class="pf-section-title"><span>📤</span><span>إرسال إشعار جديد</span></div>
+    <form action="/admin/push-notifications/send" method="POST" style="max-width:600px;">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="pf-field" style="margin-bottom:14px;">
+        <label class="pf-label">عنوان الإشعار *</label>
+        <input type="text" name="title" class="pf-input" placeholder="مثال: عرض خاص اليوم!" required maxlength="100">
+      </div>
+      <div class="pf-field" style="margin-bottom:14px;">
+        <label class="pf-label">نص الرسالة *</label>
+        <textarea name="message" class="pf-input" rows="3" placeholder="اكتب تفاصيل الإشعار هنا..." required maxlength="500" style="resize:vertical;"></textarea>
+      </div>
+      <div class="pf-field" style="margin-bottom:18px;">
+        <label class="pf-label">رابط (اختياري)</label>
+        <input type="url" name="url" class="pf-input" placeholder="https://mghagha-projectzip--josenberlo.replit.app/...">
+        <small style="color:var(--color-muted);">عند النقر على الإشعار سيُفتح هذا الرابط. اتركه فارغاً لفتح الصفحة الرئيسية.</small>
+      </div>
+      <button type="submit" class="btn btn-primary" onclick="return confirm('هل أنت متأكد من إرسال الإشعار لجميع المستخدمين؟')">
+        🚀 إرسال الإشعار الآن
+      </button>
+    </form>
+  </div>
+
+  <!-- Log -->
+  <div class="pf-section">
+    <div class="pf-section-title"><span>📋</span><span>سجل الإشعارات المُرسلة</span></div>
+    <% if (logs.length === 0) { %>
+      <p style="color:var(--color-muted);text-align:center;padding:32px 0;">لا توجد إشعارات مُرسلة بعد.</p>
+    <% } else { %>
+      <div style="overflow-x:auto;">
+        <table class="admin-table" style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:var(--color-bg-alt);">
+              <th style="padding:10px 12px;text-align:right;font-size:0.82rem;">العنوان</th>
+              <th style="padding:10px 12px;text-align:right;font-size:0.82rem;">الرسالة</th>
+              <th style="padding:10px 12px;text-align:right;font-size:0.82rem;">المُرسِل</th>
+              <th style="padding:10px 12px;text-align:center;font-size:0.82rem;">المستلمون</th>
+              <th style="padding:10px 12px;text-align:right;font-size:0.82rem;">التاريخ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% logs.forEach(function(log) { %>
+            <tr style="border-bottom:1px solid var(--color-border);">
+              <td style="padding:10px 12px;font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= log.title %></td>
+              <td style="padding:10px 12px;color:var(--color-muted);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.88rem;"><%= log.message %></td>
+              <td style="padding:10px 12px;font-size:0.88rem;"><%= log.admin_name || 'مجهول' %></td>
+              <td style="padding:10px 12px;text-align:center;"><span class="badge" style="background:var(--color-primary-light);color:var(--color-primary-dark);"><%= log.recipients %></span></td>
+              <td style="padding:10px 12px;font-size:0.82rem;color:var(--color-muted);white-space:nowrap;"><%= new Date(log.created_at).toLocaleString('ar-EG') %></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</div>
+<%- include('../partials/footer') %>

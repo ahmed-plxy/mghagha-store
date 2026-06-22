@@ -1,0 +1,221 @@
+<%- include('../../partials/header', { title: 'محادثة مع ' + customer.full_name }) %>
+<style>
+  .bottom-nav  { display: none !important; }
+  .site-footer { display: none !important; }
+  .site-main   { padding-bottom: 0 !important; padding-top: 0 !important; }
+  .site-main > .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+  .chat-page   { height: calc(100dvh - 60px) !important; max-width: 100% !important; }
+  .chat-box    { flex: 1 !important; max-height: none !important; min-height: 0 !important; }
+
+  /* VENDOR = current user — right side, primary green */
+  .chat-message-vendor { flex-direction: row-reverse !important; }
+  .chat-message-vendor .chat-message-bubble {
+    background: var(--color-primary, #1e7a4c) !important;
+    color: #fff !important;
+    border-bottom-left-radius: 4px !important;
+    border-bottom-right-radius: 18px !important;
+    border: none !important;
+  }
+  .chat-message-vendor .chat-bubble-avatar {
+    background: var(--color-primary, #1e7a4c) !important;
+    color: #fff !important;
+  }
+  .chat-message-vendor .chat-message-time { text-align: left; color: rgba(255,255,255,.75) !important; }
+
+  /* CUSTOMER — left side, muted gray */
+  .chat-message-customer { flex-direction: row !important; }
+  .chat-message-customer .chat-message-bubble {
+    background: var(--color-card, #fff) !important;
+    color: var(--color-text, #111) !important;
+    border: 1px solid var(--color-border, #e5e7eb) !important;
+    border-bottom-right-radius: 4px !important;
+    border-bottom-left-radius: 18px !important;
+  }
+  .chat-message-customer .chat-message-time { text-align: right; color: var(--color-muted, #9ca3af) !important; }
+</style>
+<div class="container" style="padding-bottom:0;">
+  <div class="chat-page">
+
+    <div class="chat-header">
+      <a href="/vendor/messages" class="chat-header-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+        رجوع
+      </a>
+      <div class="chat-header-avatar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="chat-header-info">
+        <p class="chat-header-name"><%= customer.full_name %></p>
+        <% if (customer.phone && !customer.phone.startsWith('google_')) { %>
+          <span class="chat-header-subtitle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 12 19.79 19.79 0 011.58 3.45 2 2 0 013.55 1.27h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 8.82a16 16 0 006.27 6.27l1.62-1.62a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            <%= customer.phone %>
+          </span>
+        <% } else { %>
+          <span class="chat-header-subtitle">عميل</span>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="chat-box" id="chatBox">
+      <% if (messages.length === 0) { %>
+        <div class="chat-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <p style="margin:0;font-size:0.92rem;">لا توجد رسائل بعد.</p>
+        </div>
+      <% } else { %>
+        <% messages.forEach(function(m) { %>
+          <%
+            var isVendor = m.sender_id === currentUser.id;
+            var bubbleClass = isVendor ? 'chat-message-vendor' : 'chat-message-customer';
+          %>
+          <div class="chat-message <%= bubbleClass %>">
+            <div class="chat-bubble-avatar chat-bubble-avatar--<%= isVendor ? 'vendor' : 'customer' %>">
+              <% if (isVendor) { %>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+              <% } else { %>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <% } %>
+            </div>
+            <div class="chat-message-bubble">
+              <% m.body.split('\n').forEach(function(line) { %>
+                <% if (line.startsWith('http')) { %>
+                  <a href="<%= line %>" style="color:inherit;opacity:0.85;font-size:0.82rem;word-break:break-all;" target="_blank"><%= line %></a>
+                <% } else { %>
+                  <p><%= line %></p>
+                <% } %>
+              <% }) %>
+              <span class="chat-message-time">
+                <%= new Date(m.created_at + 'Z').toLocaleTimeString('ar-EG', {timeZone:'Africa/Cairo', hour:'2-digit', minute:'2-digit'}) %>
+              </span>
+            </div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+
+    <div class="chat-input-bar">
+
+      <form action="/vendor/messages/<%= conversation.id %>/send" method="POST" class="chat-form" id="chatForm">
+        <div class="chat-form-inner">
+          <textarea
+            name="body"
+            id="chatInput"
+            rows="1"
+            placeholder="اكتب ردك هنا..."
+            required
+            onInput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"
+          ></textarea>
+        </div>
+        <button type="submit" class="chat-send-btn" aria-label="إرسال">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function() {
+  var chatBox   = document.getElementById('chatBox');
+  var chatForm  = document.getElementById('chatForm');
+  var chatInput = document.getElementById('chatInput');
+  var convId = <%= conversation.id %>;
+  var myId   = <%= currentUser.id %>;
+  var lastId = <%= messages.length > 0 ? messages[messages.length - 1].id : 0 %>;
+  var csrfToken = '<%= csrfToken %>';
+
+  if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function fmtTime(ts) {
+    return new Date(ts.endsWith('Z') ? ts : ts + 'Z')
+      .toLocaleTimeString('ar-EG', { timeZone: 'Africa/Cairo', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function buildBubble(m) {
+    var isMe = m.sender_id === myId;
+    var cls   = isMe ? 'chat-message-vendor' : 'chat-message-customer';
+    var avCls = isMe ? 'vendor' : 'customer';
+    var avSvg = isMe
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    var lines = m.body.split('\n').map(function(line) {
+      return line.startsWith('http')
+        ? '<a href="' + escHtml(line) + '" style="color:inherit;opacity:0.85;font-size:0.82rem;word-break:break-all;" target="_blank">' + escHtml(line) + '</a>'
+        : '<p>' + escHtml(line) + '</p>';
+    }).join('');
+    return '<div class="chat-message ' + cls + '">' +
+      '<div class="chat-bubble-avatar chat-bubble-avatar--' + avCls + '">' + avSvg + '</div>' +
+      '<div class="chat-message-bubble">' + lines +
+      '<span class="chat-message-time">' + fmtTime(m.created_at) + '</span>' +
+      '</div></div>';
+  }
+
+  function appendMessages(msgs) {
+    if (!msgs || !msgs.length) return;
+    var atBottom = chatBox.scrollTop + chatBox.clientHeight >= chatBox.scrollHeight - 50;
+    var empty = chatBox.querySelector('.chat-empty');
+    if (empty) empty.remove();
+    msgs.forEach(function(m) {
+      chatBox.insertAdjacentHTML('beforeend', buildBubble(m));
+      if (m.id > lastId) lastId = m.id;
+    });
+    if (atBottom) chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function submitMessage() {
+    var body = chatInput.value.trim();
+    if (!body) return;
+    chatInput.value = '';
+    chatInput.style.height = '';
+    var params = new URLSearchParams();
+    params.set('body', body);
+    params.set('_csrf', csrfToken);
+    fetch(chatForm.action, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: params.toString()
+    })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (data && data.message) appendMessages([data.message]);
+    })
+    .catch(function() {});
+  }
+
+  chatInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submitMessage();
+    }
+  });
+
+  chatForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    submitMessage();
+  });
+
+  function poll() {
+    fetch('/vendor/messages/' + convId + '/poll?since=' + lastId, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (data && data.messages && data.messages.length) appendMessages(data.messages);
+    })
+    .catch(function() {})
+    .finally(function() { setTimeout(poll, 3000); });
+  }
+
+  setTimeout(poll, 3000);
+})();
+</script>
+<%- include('../../partials/footer') %>

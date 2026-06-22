@@ -1,0 +1,36 @@
+<%- include('../partials/header', { title: 'جميع الطلبات' }) %>
+<div class="container">
+  <h1>جميع الطلبات</h1>
+
+  <div class="tabs">
+    <a href="/admin/orders" class="<%= currentStatus === 'all' ? 'tab active' : 'tab' %>">الكل</a>
+    <a href="/admin/orders?status=pending" class="<%= currentStatus === 'pending' ? 'tab active' : 'tab' %>">قيد الانتظار</a>
+    <a href="/admin/orders?status=confirmed" class="<%= currentStatus === 'confirmed' ? 'tab active' : 'tab' %>">مؤكد</a>
+    <a href="/admin/orders?status=preparing" class="<%= currentStatus === 'preparing' ? 'tab active' : 'tab' %>">قيد التحضير</a>
+    <a href="/admin/orders?status=out_for_delivery" class="<%= currentStatus === 'out_for_delivery' ? 'tab active' : 'tab' %>">في الطريق</a>
+    <a href="/admin/orders?status=delivered" class="<%= currentStatus === 'delivered' ? 'tab active' : 'tab' %>">تم التوصيل</a>
+    <a href="/admin/orders?status=cancelled" class="<%= currentStatus === 'cancelled' ? 'tab active' : 'tab' %>">ملغي</a>
+  </div>
+
+  <% if (orders.length === 0) { %>
+    <p>لا توجد طلبات.</p>
+  <% } else { %>
+    <table class="data-table">
+      <thead><tr><th>رقم الطلب</th><th>المتجر</th><th>العميل</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th><th></th></tr></thead>
+      <tbody>
+        <% orders.forEach(function(order) { %>
+          <tr>
+            <td><%= order.order_number %></td>
+            <td><%= order.store_name %></td>
+            <td><%= order.customer_name %> (<%= order.customer_phone %>)</td>
+            <td><%= order.total_amount.toFixed(2) %> ج.م</td>
+            <td><span class="badge badge-success"><%= orderStatusLabel(order.order_status) %></span></td>
+            <td><%= order.created_at %></td>
+            <td><a href="/admin/orders/<%= order.id %>" class="btn btn-small btn-secondary">التفاصيل</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>
