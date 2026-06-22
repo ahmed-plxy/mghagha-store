@@ -1,0 +1,55 @@
+name: Unzip mghagha-final.zip
+
+# Grant permission to write repository contents so the workflow can commit extracted files.
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'mghagha-final.zip'
+
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # ensure GITHUB_TOKEN credentials are available for pushes
+          persist-credentials: true
+
+      - name: Ensure unzip is installed
+        run: sudo apt-get update && sudo apt-get install -y unzip
+
+      - name: Verify archive exists
+        run: |
+          if [ ! -f mghagha-final.zip ]; then
+            echo "mghagha-final.zip not found in repository root"
+            exit 1
+          fi
+
+      - name: Unzip archive to repository root
+        run: unzip -o mghagha-final.zip -d .
+
+      - name: Remove original archive
+        run: |
+          if [ -f mghagha-final.zip ]; then
+            rm -f mghagha-final.zip
+            echo "Removed mghagha-final.zip"
+          else
+            echo "mghagha-final.zip already removed or missing"
+          fi
+
+      - name: List extracted files
+        run: ls -la
+
+      - name: Commit and push extracted files
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Add files extracted from mghagha-final.zip and remove original archive" || echo "No changes to commit"
+          git push
