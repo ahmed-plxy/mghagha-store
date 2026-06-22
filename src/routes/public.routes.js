@@ -3,7 +3,6 @@ const router = express.Router();
 const publicController = require('../controllers/public.controller');
 const personalListingController = require('../controllers/personalListing.controller');
 const reportRepo = require('../repositories/report.repo');
-const { requireRole } = require('../middleware/auth');
 
 router.get('/', publicController.landing);
 router.get('/stores', publicController.listStores);
@@ -32,9 +31,6 @@ router.post('/products/:id/report', function(req, res) {
   }
 });
 
-module.exports = router;
-
-// App Version API (used by Capacitor Android wrapper)
 router.get('/api/app-version', function(req, res) {
   const appSettingsRepo = require('../repositories/appSettings.repo');
   const settings = appSettingsRepo.getAll();
@@ -46,3 +42,5 @@ router.get('/api/app-version', function(req, res) {
     forceUpdate: settings.app_force_update === '1',
   });
 });
+
+module.exports = router;

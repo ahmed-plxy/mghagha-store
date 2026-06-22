@@ -33,7 +33,13 @@
     // ── Configuration ──────────────────────────────────────────────────────
     var APP_VERSION      = '1.0.0';
     var ONESIGNAL_APP_ID = '157460ff-c4f1-4fca-af04-a0740f39a14f';
-    var SERVER_URL       = 'https://mghagha-projectzip--josenberlo.replit.app';
+
+    // Derive server URL from capacitor config at runtime.
+    // window.location.origin gives the live server URL that Capacitor
+    // is pointing to (set via capacitor.config.json server.url in CI).
+    var SERVER_URL = (window.location.origin && window.location.origin !== 'null')
+      ? window.location.origin
+      : 'https://mghaghazip--markoandahmed.replit.app';
 
     // ── OneSignal + App bootstrap ──────────────────────────────────────────
     document.addEventListener('deviceready', function () {

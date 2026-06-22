@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "uhUMVUgwJV8_2ENWnhNHh"
+uri = "file://mghagha-fixes.tar.gz"
+type = "unspecified"
+title = "mghagha-fixes.tar.gz — All modified files"

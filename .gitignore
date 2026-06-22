@@ -8,3 +8,4 @@ uploads/public/*
 !uploads/private/.gitkeep
 !uploads/public/.gitkeep
 .env
+*.zip

@@ -239,3 +239,19 @@ try {
   console.log('✔ Added area_id column to users table.');
 } catch (e) { /* already exists */ }
 console.log('✔ Phase 4 migrations complete.');
+
+// ── Phase 5: product reports table ───────────────────────────────────────────
+db.exec(`
+  CREATE TABLE IF NOT EXISTS product_reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    reporter_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    reason TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )
+`);
+try { db.exec('CREATE INDEX IF NOT EXISTS idx_reports_product ON product_reports(product_id)'); } catch (e) {}
+try { db.exec('CREATE INDEX IF NOT EXISTS idx_reports_status ON product_reports(status)'); } catch (e) {}
+console.log('✔ product_reports table ready.');
+console.log('✔ Phase 5 migrations complete.');

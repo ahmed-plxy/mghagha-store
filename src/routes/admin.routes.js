@@ -49,19 +49,16 @@ router.post('/reports/:id/dismiss', adminController.dismissReport);
 router.post('/reports/:id/disable-product', adminController.disableReportedProduct);
 router.post('/reports/:id/delete-product', adminController.deleteReportedProduct);
 
-module.exports = router;
-
-// Push Notifications
 router.get('/push-notifications', adminController.listPushNotifications);
 router.post('/push-notifications/send', adminController.sendPushNotification);
 
-// App Version Management
 router.get('/app-version', adminController.appVersionSettings);
 router.post('/app-version', adminController.saveAppVersionSettings);
 
-// Classifieds Moderation
 router.get('/classifieds-moderation', adminController.listClassifiedsModeration);
 router.post('/classifieds-moderation/:id/hide', adminController.hideListing);
 router.post('/classifieds-moderation/:id/restore', adminController.restoreListing);
 router.post('/classifieds-moderation/:id/remove', adminController.removeListing);
 router.post('/classifieds-moderation/:id/delete', adminController.permanentDeleteListing);
+
+module.exports = router;
