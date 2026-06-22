@@ -39,7 +39,7 @@
     document.addEventListener('deviceready', function () {
 
       // ── OneSignal Native Capacitor Init ──────────────────────────────────
-      // onesignal-capacitor exposes window.OneSignal after cap sync + build
+      // @onesignal/capacitor-plugin exposes window.OneSignal after cap sync + build
       if (window.OneSignal) {
         // 1. Initialize with your OneSignal App ID
         window.OneSignal.initialize(ONESIGNAL_APP_ID);
