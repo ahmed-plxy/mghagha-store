@@ -1,0 +1,164 @@
+name: Android Build
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Sign APK + AAB
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ONESIGNAL_DISABLE_LOCATION: true
+
+    steps:
+      # ── Checkout ─────────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Java 17 for Gradle ───────────────────────────────────────────────────
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # ── Android SDK ──────────────────────────────────────────────────────────
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      # ── Node 20 ──────────────────────────────────────────────────────────────
+      # NOTE: Node must come AFTER Android SDK so ANDROID_HOME env is set first.
+      # cache-dependency-path uses mobile-app/package-lock.json — make sure that
+      # file is committed to the repo (run "npm install" locally inside mobile-app
+      # and commit the generated package-lock.json).
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mobile-app/package-lock.json
+
+      # ── Install npm dependencies ──────────────────────────────────────────────
+      # Requires mobile-app/package-lock.json to be committed.
+      # If you have not committed it yet, replace "npm ci" with "npm install".
+      - name: Install npm dependencies
+        working-directory: mobile-app
+        run: npm ci
+
+      # ── Patch capacitor.config.json with real server URL ─────────────────────
+      - name: Set app server URL
+        working-directory: mobile-app
+        run: |
+          node -e "
+            const fs = require('fs');
+            const cfg = JSON.parse(fs.readFileSync('capacitor.config.json','utf8'));
+            cfg.server.url = process.env.APP_URL;
+            fs.writeFileSync('capacitor.config.json', JSON.stringify(cfg, null, 2));
+            console.log('Server URL set to:', process.env.APP_URL);
+          "
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+
+      # ── Add Android platform ──────────────────────────────────────────────────
+      # "npx cap add android" fails if the android/ folder already exists,
+      # so we guard with a check.
+      - name: Add Android platform
+        working-directory: mobile-app
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          else
+            echo "android/ already exists — skipping cap add"
+          fi
+
+      # ── Sync Capacitor ────────────────────────────────────────────────────────
+      - name: Sync Capacitor
+        working-directory: mobile-app
+        run: npx cap sync android
+
+      # ── Release signing config ─────────────────────────────
+      - name: Configure release signing
+        working-directory: mobile-app
+        run: node scripts/configure-signing.js
+
+      # ── AndroidManifest permissions ───────────────────────────────────────────
+      - name: Patch AndroidManifest.xml for push permissions
+        working-directory: mobile-app
+        run: node scripts/patch-android-manifest.js
+
+      # ── App icons ─────────────────────────────────────────────────────────────
+      - name: Inject Android app icons
+        working-directory: mobile-app
+        run: node scripts/inject-icons.js
+
+      # ── Decode release keystore ───────────────────────────────────────────────
+      - name: Decode release keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode \
+            > mobile-app/android/release-keystore.jks
+
+      # ── Make gradlew executable ───────────────────────────────────────────────
+      - name: Make gradlew executable
+        working-directory: mobile-app/android
+        run: chmod +x gradlew
+
+      # ── Gradle cache (speeds up builds significantly) ─────────────────────────
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('mobile-app/android/**/*.gradle*', 'mobile-app/android/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # ── Build release APK ─────────────────────────────────────────────────────
+      - name: Build release APK
+        working-directory: mobile-app/android
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/mobile-app/android/release-keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      # ── Build release AAB (Google Play) ───────────────────────────────────────
+      - name: Build release AAB
+        working-directory: mobile-app/android
+        run: ./gradlew bundleRelease --no-daemon --stacktrace
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/mobile-app/android/release-keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      # ── Upload APK artifact ───────────────────────────────────────────────────
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: mghagha-store-release-apk
+          path: mobile-app/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+
+      # ── Upload AAB artifact ───────────────────────────────────────────────────
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: mghagha-store-release-aab
+          path: mobile-app/android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      # ── Attach to GitHub Release (tag pushes only) ────────────────────────────
+      - name: Upload to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            mobile-app/android/app/build/outputs/apk/release/app-release.apk
+            mobile-app/android/app/build/outputs/bundle/release/app-release.aab
